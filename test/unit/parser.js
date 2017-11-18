@@ -226,6 +226,29 @@ describe('Parser', () => {
     });
   });
 
+  describe('._callColumnRangeValue', () => {
+    it('should convert coordinates in top-left bottom-right format (from bottom-left to top-right)', () => {
+      const cb = jest.fn();
+
+      parser.on('callColumnRangeValue', cb);
+      parser._callRangeValue('Sheet1!$A:$B');
+
+      const startCell = {
+        row: {index: 1, isAbsolute: false, label: '2'},
+        column: {index: 0, isAbsolute: true, label: 'A'},
+        label: '$A2',
+      };
+      const endCell = {
+        row: {index: 8, isAbsolute: true, label: '9'},
+        column: {index: 1, isAbsolute: false, label: 'B'},
+        label: 'B$9',
+      };
+
+      expect(cb).toHaveBeenCalledWith(startCell, endCell, expect.anything());
+    });
+
+  });
+
   describe('._callRangeValue()', () => {
     it('should return an empty array if under specified coordinates data value not exist', () => {
       expect(parser._callRangeValue('A1', 'B2')).toMatchObject([]);

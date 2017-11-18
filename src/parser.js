@@ -23,6 +23,7 @@ class Parser extends Emitter {
       callFunction: (name, params) => this._callFunction(name, params),
       cellValue: (value) => this._callCellValue(value),
       rangeValue: (start, end) => this._callRangeValue(start, end),
+      columnRangeValue: (range) => this._callColumnRangeValue(range)
     };
     this.variables = Object.create(null);
     this.functions = Object.create(null);
@@ -182,6 +183,42 @@ class Parser extends Emitter {
     return value;
   }
 
+  /**
+   * Retrieve entire columns
+   * @param {String} range range reference. e.g. Sheet1!$C:$E , D:D, A:$A.
+   * */
+  _callColumnRangeValue(range) {
+    const [startLabel, endLabel] = range.split(':');
+    const [, startColumn, startSheet] = extractLabel(startLabel);
+    const [, endColumn, endSheet] = extractLabel(startLabel);
+
+    let startCell = {};
+    let endCell = {};
+
+    if (startColumn.index <= endColumn.index) {
+      startCell.column = startColumn;
+      endCell.column = endColumn;
+    } else {
+      startCell.column = endColumn;
+      endCell.column = startColumn;
+    }
+
+    startCell.label = toLabel(startCell.row, startCell.column);
+    endCell.label = toLabel(endCell.row, endCell.column);
+
+    if (startSheet) {
+      startCell.sheet = startSheet;
+      endCell.sheet = startSheet;
+    }
+
+    let value = [];
+
+    this.emit('callColumnRangeValue', startCell, endCell, (_value = []) => {
+      value = _value;
+    });
+
+    return value;
+  }
   /**
    * Retrieve value by its label (`B3:A1`, `B$3:A1`, `B$3:$A1`, `$B$3:A$1`).
    *
