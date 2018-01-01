@@ -87,23 +87,22 @@ exports.na = new Error('#N/A');
 exports.error = new Error('#ERROR!');
 exports.data = new Error('#GETTING_DATA');
 
-
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var error = __webpack_require__(0);
 
-exports.flattenShallow = function(array) {
+exports.flattenShallow = function (array) {
   if (!array || !array.reduce) {
     return array;
   }
 
-  return array.reduce(function(a, b) {
+  return array.reduce(function (a, b) {
     var aIsArray = Array.isArray(a);
     var bIsArray = Array.isArray(b);
 
-    if (aIsArray && bIsArray ) {
+    if (aIsArray && bIsArray) {
       return a.concat(b);
     }
     if (aIsArray) {
@@ -119,7 +118,7 @@ exports.flattenShallow = function(array) {
   });
 };
 
-exports.isFlat = function(array) {
+exports.isFlat = function (array) {
   if (!array) {
     return false;
   }
@@ -133,7 +132,31 @@ exports.isFlat = function(array) {
   return true;
 };
 
-exports.flatten = function() {
+/**
+    Intended for cases where we need the value as part of JS expression.
+    So Guy==Guy will actually be "Guy"=="Guy"
+ **/
+exports.simpleAsType = function (value) {
+  return isNaN(value) ? `"${value}"` : value;
+};
+
+/**
+ * assumes array of arrays while each inner array either length 1 or 0.
+ * if length 0 - return empty string, otherwise return only element.
+ *
+ *
+ **/
+exports.simpleFlatten = function (arr) {
+  return arr.map(item => {
+    if (Array.isArray(item)) {
+      return item.length === 0 ? '' : exports.simpleAsType(item[0]);
+    } else {
+      return item;
+    }
+  });
+};
+
+exports.flatten = function () {
   var result = exports.argsToArray.apply(null, arguments);
 
   while (!exports.isFlat(result)) {
@@ -143,29 +166,29 @@ exports.flatten = function() {
   return result;
 };
 
-exports.argsToArray = function(args) {
+exports.argsToArray = function (args) {
   var result = [];
 
-  exports.arrayEach(args, function(value) {
+  exports.arrayEach(args, function (value) {
     result.push(value);
   });
 
   return result;
 };
 
-exports.numbers = function() {
+exports.numbers = function () {
   var possibleNumbers = this.flatten.apply(null, arguments);
-  return possibleNumbers.filter(function(el) {
+  return possibleNumbers.filter(function (el) {
     return typeof el === 'number';
   });
 };
 
-exports.cleanFloat = function(number) {
+exports.cleanFloat = function (number) {
   var power = 1e14;
   return Math.round(number * power) / power;
 };
 
-exports.parseBool = function(bool) {
+exports.parseBool = function (bool) {
   if (typeof bool === 'boolean') {
     return bool;
   }
@@ -196,7 +219,7 @@ exports.parseBool = function(bool) {
   return error.value;
 };
 
-exports.parseNumber = function(string) {
+exports.parseNumber = function (string) {
   if (string === undefined || string === '') {
     return error.value;
   }
@@ -207,7 +230,7 @@ exports.parseNumber = function(string) {
   return error.value;
 };
 
-exports.parseNumberArray = function(arr) {
+exports.parseNumberArray = function (arr) {
   var len;
 
   if (!arr || (len = arr.length) === 0) {
@@ -218,16 +241,16 @@ exports.parseNumberArray = function(arr) {
 
   while (len--) {
     parsed = exports.parseNumber(arr[len]);
-    if (parsed === error.value) {
-      return parsed;
-    }
+    // if (parsed === error.value) {
+    // return parsed;
+    // }
     arr[len] = parsed;
   }
 
   return arr;
 };
 
-exports.parseMatrix = function(matrix) {
+exports.parseMatrix = function (matrix) {
   var n;
 
   if (!matrix || (n = matrix.length) === 0) {
@@ -248,7 +271,7 @@ exports.parseMatrix = function(matrix) {
 };
 
 var d1900 = new Date(1900, 0, 1);
-exports.parseDate = function(date) {
+exports.parseDate = function (date) {
   if (!isNaN(date)) {
     if (date instanceof Date) {
       return new Date(date);
@@ -271,7 +294,7 @@ exports.parseDate = function(date) {
   return error.value;
 };
 
-exports.parseDateArray = function(arr) {
+exports.parseDateArray = function (arr) {
   var len = arr.length;
   var parsed;
   while (len--) {
@@ -284,7 +307,7 @@ exports.parseDateArray = function(arr) {
   return arr;
 };
 
-exports.anyIsError = function() {
+exports.anyIsError = function () {
   var n = arguments.length;
   while (n--) {
     if (arguments[n] instanceof Error) {
@@ -294,7 +317,7 @@ exports.anyIsError = function() {
   return false;
 };
 
-exports.arrayValuesToNumbers = function(arr) {
+exports.arrayValuesToNumbers = function (arr) {
   var n = arr.length;
   var el;
   while (n--) {
@@ -322,7 +345,7 @@ exports.arrayValuesToNumbers = function(arr) {
   return arr;
 };
 
-exports.rest = function(array, idx) {
+exports.rest = function (array, idx) {
   idx = idx || 1;
   if (!array || typeof array.slice !== 'function') {
     return array;
@@ -330,7 +353,7 @@ exports.rest = function(array, idx) {
   return array.slice(idx);
 };
 
-exports.initial = function(array, idx) {
+exports.initial = function (array, idx) {
   idx = idx || 1;
   if (!array || typeof array.slice !== 'function') {
     return array;
@@ -338,8 +361,9 @@ exports.initial = function(array, idx) {
   return array.slice(0, array.length - idx);
 };
 
-exports.arrayEach = function(array, iteratee) {
-  var index = -1, length = array.length;
+exports.arrayEach = function (array, iteratee) {
+  var index = -1,
+      length = array.length;
 
   while (++index < length) {
     if (iteratee(array[index], index, array) === false) {
@@ -350,18 +374,17 @@ exports.arrayEach = function(array, iteratee) {
   return array;
 };
 
-exports.transpose = function(matrix) {
-  if(!matrix) { 
+exports.transpose = function (matrix) {
+  if (!matrix) {
     return error.value;
   }
 
-  return matrix[0].map(function(col, i) { 
-    return matrix.map(function(row) { 
+  return matrix[0].map(function (col, i) {
+    return matrix.map(function (row) {
       return row[i];
     });
   });
 };
-
 
 /***/ }),
 /* 2 */
@@ -471,7 +494,7 @@ var error = __webpack_require__(0);
 var statistical = __webpack_require__(5);
 var information = __webpack_require__(7);
 
-exports.ABS = function(number) {
+exports.ABS = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -481,7 +504,7 @@ exports.ABS = function(number) {
   return result;
 };
 
-exports.ACOS = function(number) {
+exports.ACOS = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -495,7 +518,7 @@ exports.ACOS = function(number) {
   return result;
 };
 
-exports.ACOSH = function(number) {
+exports.ACOSH = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -509,7 +532,7 @@ exports.ACOSH = function(number) {
   return result;
 };
 
-exports.ACOT = function(number) {
+exports.ACOT = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -519,7 +542,7 @@ exports.ACOT = function(number) {
   return result;
 };
 
-exports.ACOTH = function(number) {
+exports.ACOTH = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -534,7 +557,7 @@ exports.ACOTH = function(number) {
 };
 
 //TODO: use options
-exports.AGGREGATE = function(function_num, options, ref1, ref2) {
+exports.AGGREGATE = function (function_num, options, ref1, ref2) {
   function_num = utils.parseNumber(function_num);
   options = utils.parseNumber(function_num);
   if (utils.anyIsError(function_num, options)) {
@@ -582,13 +605,13 @@ exports.AGGREGATE = function(function_num, options, ref1, ref2) {
   }
 };
 
-exports.ARABIC = function(text) {
+exports.ARABIC = function (text) {
   // Credits: Rafa? Kukawski
   if (!/^M*(?:D?C{0,3}|C[MD])(?:L?X{0,3}|X[CL])(?:V?I{0,3}|I[XV])$/.test(text)) {
     return error.value;
   }
   var r = 0;
-  text.replace(/[MDLV]|C[MD]?|X[CL]?|I[XV]?/g, function(i) {
+  text.replace(/[MDLV]|C[MD]?|X[CL]?|I[XV]?/g, function (i) {
     r += {
       M: 1000,
       CM: 900,
@@ -608,7 +631,7 @@ exports.ARABIC = function(text) {
   return r;
 };
 
-exports.ASIN = function(number) {
+exports.ASIN = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -622,7 +645,7 @@ exports.ASIN = function(number) {
   return result;
 };
 
-exports.ASINH = function(number) {
+exports.ASINH = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -630,7 +653,7 @@ exports.ASINH = function(number) {
   return Math.log(number + Math.sqrt(number * number + 1));
 };
 
-exports.ATAN = function(number) {
+exports.ATAN = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -638,7 +661,7 @@ exports.ATAN = function(number) {
   return Math.atan(number);
 };
 
-exports.ATAN2 = function(number_x, number_y) {
+exports.ATAN2 = function (number_x, number_y) {
   number_x = utils.parseNumber(number_x);
   number_y = utils.parseNumber(number_y);
   if (utils.anyIsError(number_x, number_y)) {
@@ -647,7 +670,7 @@ exports.ATAN2 = function(number_x, number_y) {
   return Math.atan2(number_x, number_y);
 };
 
-exports.ATANH = function(number) {
+exports.ATANH = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -661,7 +684,7 @@ exports.ATANH = function(number) {
   return result;
 };
 
-exports.BASE = function(number, radix, min_length) {
+exports.BASE = function (number, radix, min_length) {
   min_length = min_length || 0;
 
   number = utils.parseNumber(number);
@@ -670,13 +693,13 @@ exports.BASE = function(number, radix, min_length) {
   if (utils.anyIsError(number, radix, min_length)) {
     return error.value;
   }
-  min_length = (min_length === undefined) ? 0 : min_length;
+  min_length = min_length === undefined ? 0 : min_length;
   var result = number.toString(radix);
   return new Array(Math.max(min_length + 1 - result.length, 0)).join('0') + result;
 };
 
-exports.CEILING = function(number, significance, mode) {
-  significance = (significance === undefined) ? 1 : Math.abs(significance);
+exports.CEILING = function (number, significance, mode) {
+  significance = significance === undefined ? 1 : Math.abs(significance);
   mode = mode || 0;
 
   number = utils.parseNumber(number);
@@ -704,7 +727,7 @@ exports.CEILING.MATH = exports.CEILING;
 
 exports.CEILING.PRECISE = exports.CEILING;
 
-exports.COMBIN = function(number, number_chosen) {
+exports.COMBIN = function (number, number_chosen) {
   number = utils.parseNumber(number);
   number_chosen = utils.parseNumber(number_chosen);
   if (utils.anyIsError(number, number_chosen)) {
@@ -713,16 +736,16 @@ exports.COMBIN = function(number, number_chosen) {
   return exports.FACT(number) / (exports.FACT(number_chosen) * exports.FACT(number - number_chosen));
 };
 
-exports.COMBINA = function(number, number_chosen) {
+exports.COMBINA = function (number, number_chosen) {
   number = utils.parseNumber(number);
   number_chosen = utils.parseNumber(number_chosen);
   if (utils.anyIsError(number, number_chosen)) {
     return error.value;
   }
-  return (number === 0 && number_chosen === 0) ? 1 : exports.COMBIN(number + number_chosen - 1, number - 1);
+  return number === 0 && number_chosen === 0 ? 1 : exports.COMBIN(number + number_chosen - 1, number - 1);
 };
 
-exports.COS = function(number) {
+exports.COS = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -730,7 +753,7 @@ exports.COS = function(number) {
   return Math.cos(number);
 };
 
-exports.COSH = function(number) {
+exports.COSH = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -738,7 +761,7 @@ exports.COSH = function(number) {
   return (Math.exp(number) + Math.exp(-number)) / 2;
 };
 
-exports.COT = function(number) {
+exports.COT = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -746,7 +769,7 @@ exports.COT = function(number) {
   return 1 / Math.tan(number);
 };
 
-exports.COTH = function(number) {
+exports.COTH = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -755,7 +778,7 @@ exports.COTH = function(number) {
   return (e2 + 1) / (e2 - 1);
 };
 
-exports.CSC = function(number) {
+exports.CSC = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -763,7 +786,7 @@ exports.CSC = function(number) {
   return 1 / Math.sin(number);
 };
 
-exports.CSCH = function(number) {
+exports.CSCH = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -771,7 +794,7 @@ exports.CSCH = function(number) {
   return 2 / (Math.exp(number) - Math.exp(-number));
 };
 
-exports.DECIMAL = function(number, radix) {
+exports.DECIMAL = function (number, radix) {
   if (arguments.length < 1) {
     return error.value;
   }
@@ -779,7 +802,7 @@ exports.DECIMAL = function(number, radix) {
   return parseInt(number, radix);
 };
 
-exports.DEGREES = function(number) {
+exports.DEGREES = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -787,7 +810,7 @@ exports.DEGREES = function(number) {
   return number * 180 / Math.PI;
 };
 
-exports.EVEN = function(number) {
+exports.EVEN = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -795,7 +818,7 @@ exports.EVEN = function(number) {
   return exports.CEILING(number, -2, -1);
 };
 
-exports.EXP = function(number) {
+exports.EXP = function (number) {
   if (arguments.length < 1) {
     return error.na;
   }
@@ -809,7 +832,7 @@ exports.EXP = function(number) {
 };
 
 var MEMOIZED_FACT = [];
-exports.FACT = function(number) {
+exports.FACT = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -825,7 +848,7 @@ exports.FACT = function(number) {
   }
 };
 
-exports.FACTDOUBLE = function(number) {
+exports.FACTDOUBLE = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -838,7 +861,7 @@ exports.FACTDOUBLE = function(number) {
   }
 };
 
-exports.FLOOR = function(number, significance) {
+exports.FLOOR = function (number, significance) {
   number = utils.parseNumber(number);
   significance = utils.parseNumber(significance);
   if (utils.anyIsError(number, significance)) {
@@ -862,9 +885,9 @@ exports.FLOOR = function(number, significance) {
 };
 
 //TODO: Verify
-exports.FLOOR.MATH = function(number, significance, mode) {
-  significance = (significance === undefined) ? 1 : significance;
-  mode = (mode === undefined) ? 0 : mode;
+exports.FLOOR.MATH = function (number, significance, mode) {
+  significance = significance === undefined ? 1 : significance;
+  mode = mode === undefined ? 0 : mode;
 
   number = utils.parseNumber(number);
   significance = utils.parseNumber(significance);
@@ -890,7 +913,7 @@ exports.FLOOR.MATH = function(number, significance, mode) {
 exports.FLOOR.PRECISE = exports.FLOOR.MATH;
 
 // adapted http://rosettacode.org/wiki/Greatest_common_divisor#JavaScript
-exports.GCD = function() {
+exports.GCD = function () {
   var range = utils.parseNumberArray(utils.flatten(arguments));
   if (range instanceof Error) {
     return range;
@@ -913,8 +936,7 @@ exports.GCD = function() {
   return x;
 };
 
-
-exports.INT = function(number) {
+exports.INT = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -927,25 +949,23 @@ exports.ISO = {
   CEILING: exports.CEILING
 };
 
-exports.LCM = function() {
+exports.LCM = function () {
   // Credits: Jonas Raoni Soares Silva
   var o = utils.parseNumberArray(utils.flatten(arguments));
   if (o instanceof Error) {
     return o;
   }
-  for (var i, j, n, d, r = 1;
-       (n = o.pop()) !== undefined;) {
+  for (var i, j, n, d, r = 1; (n = o.pop()) !== undefined;) {
     while (n > 1) {
       if (n % 2) {
         for (i = 3, j = Math.floor(Math.sqrt(n)); i <= j && n % i; i += 2) {
           //empty
         }
-        d = (i <= j) ? i : n;
+        d = i <= j ? i : n;
       } else {
         d = 2;
       }
-      for (n /= d, r *= d, i = o.length; i;
-           (o[--i] % d) === 0 && (o[i] /= d) === 1 && o.splice(i, 1)) {
+      for (n /= d, r *= d, i = o.length; i; o[--i] % d === 0 && (o[i] /= d) === 1 && o.splice(i, 1)) {
         //empty
       }
     }
@@ -953,7 +973,7 @@ exports.LCM = function() {
   return r;
 };
 
-exports.LN = function(number) {
+exports.LN = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -961,33 +981,33 @@ exports.LN = function(number) {
   return Math.log(number);
 };
 
-exports.LN10 = function() {
+exports.LN10 = function () {
   return Math.log(10);
 };
 
-exports.LN2 = function() {
+exports.LN2 = function () {
   return Math.log(2);
 };
 
-exports.LOG10E = function() {
+exports.LOG10E = function () {
   return Math.LOG10E;
 };
 
-exports.LOG2E = function() {
+exports.LOG2E = function () {
   return Math.LOG2E;
 };
 
-exports.LOG = function(number, base) {
+exports.LOG = function (number, base) {
   number = utils.parseNumber(number);
   base = utils.parseNumber(base);
   if (utils.anyIsError(number, base)) {
     return error.value;
   }
-  base = (base === undefined) ? 10 : base;
+  base = base === undefined ? 10 : base;
   return Math.log(number) / Math.log(base);
 };
 
-exports.LOG10 = function(number) {
+exports.LOG10 = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -995,7 +1015,7 @@ exports.LOG10 = function(number) {
   return Math.log(number) / Math.log(10);
 };
 
-exports.MOD = function(dividend, divisor) {
+exports.MOD = function (dividend, divisor) {
   dividend = utils.parseNumber(dividend);
   divisor = utils.parseNumber(divisor);
   if (utils.anyIsError(dividend, divisor)) {
@@ -1005,10 +1025,10 @@ exports.MOD = function(dividend, divisor) {
     return error.div0;
   }
   var modulus = Math.abs(dividend % divisor);
-  return (divisor > 0) ? modulus : -modulus;
+  return divisor > 0 ? modulus : -modulus;
 };
 
-exports.MROUND = function(number, multiple) {
+exports.MROUND = function (number, multiple) {
   number = utils.parseNumber(number);
   multiple = utils.parseNumber(multiple);
   if (utils.anyIsError(number, multiple)) {
@@ -1021,7 +1041,7 @@ exports.MROUND = function(number, multiple) {
   return Math.round(number / multiple) * multiple;
 };
 
-exports.MULTINOMIAL = function() {
+exports.MULTINOMIAL = function () {
   var args = utils.parseNumberArray(utils.flatten(arguments));
   if (args instanceof Error) {
     return args;
@@ -1035,25 +1055,25 @@ exports.MULTINOMIAL = function() {
   return exports.FACT(sum) / divisor;
 };
 
-exports.ODD = function(number) {
+exports.ODD = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
   }
   var temp = Math.ceil(Math.abs(number));
-  temp = (temp & 1) ? temp : temp + 1;
-  return (number > 0) ? temp : -temp;
+  temp = temp & 1 ? temp : temp + 1;
+  return number > 0 ? temp : -temp;
 };
 
-exports.PI = function() {
+exports.PI = function () {
   return Math.PI;
 };
 
-exports.E = function() {
+exports.E = function () {
   return Math.E;
 };
 
-exports.POWER = function(number, power) {
+exports.POWER = function (number, power) {
   number = utils.parseNumber(number);
   power = utils.parseNumber(power);
   if (utils.anyIsError(number, power)) {
@@ -1067,19 +1087,21 @@ exports.POWER = function(number, power) {
   return result;
 };
 
-exports.PRODUCT = function() {
+exports.PRODUCT = function () {
   var args = utils.parseNumberArray(utils.flatten(arguments));
   if (args instanceof Error) {
     return args;
   }
   var result = 1;
   for (var i = 0; i < args.length; i++) {
-    result *= args[i];
+    if (!isNaN(args[i])) {
+      result *= args[i];
+    }
   }
   return result;
 };
 
-exports.QUOTIENT = function(numerator, denominator) {
+exports.QUOTIENT = function (numerator, denominator) {
   numerator = utils.parseNumber(numerator);
   denominator = utils.parseNumber(denominator);
   if (utils.anyIsError(numerator, denominator)) {
@@ -1088,7 +1110,7 @@ exports.QUOTIENT = function(numerator, denominator) {
   return parseInt(numerator / denominator, 10);
 };
 
-exports.RADIANS = function(number) {
+exports.RADIANS = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -1096,11 +1118,11 @@ exports.RADIANS = function(number) {
   return number * Math.PI / 180;
 };
 
-exports.RAND = function() {
+exports.RAND = function () {
   return Math.random();
 };
 
-exports.RANDBETWEEN = function(bottom, top) {
+exports.RANDBETWEEN = function (bottom, top) {
   bottom = utils.parseNumber(bottom);
   top = utils.parseNumber(top);
   if (utils.anyIsError(bottom, top)) {
@@ -1112,7 +1134,7 @@ exports.RANDBETWEEN = function(bottom, top) {
 };
 
 // TODO
-exports.ROMAN = function(number) {
+exports.ROMAN = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -1124,12 +1146,12 @@ exports.ROMAN = function(number) {
   var roman = '';
   var i = 3;
   while (i--) {
-    roman = (key[+digits.pop() + (i * 10)] || '') + roman;
+    roman = (key[+digits.pop() + i * 10] || '') + roman;
   }
   return new Array(+digits.join('') + 1).join('M') + roman;
 };
 
-exports.ROUND = function(number, digits) {
+exports.ROUND = function (number, digits) {
   number = utils.parseNumber(number);
   digits = utils.parseNumber(digits);
   if (utils.anyIsError(number, digits)) {
@@ -1138,27 +1160,27 @@ exports.ROUND = function(number, digits) {
   return Math.round(number * Math.pow(10, digits)) / Math.pow(10, digits);
 };
 
-exports.ROUNDDOWN = function(number, digits) {
+exports.ROUNDDOWN = function (number, digits) {
   number = utils.parseNumber(number);
   digits = utils.parseNumber(digits);
   if (utils.anyIsError(number, digits)) {
     return error.value;
   }
-  var sign = (number > 0) ? 1 : -1;
-  return sign * (Math.floor(Math.abs(number) * Math.pow(10, digits))) / Math.pow(10, digits);
+  var sign = number > 0 ? 1 : -1;
+  return sign * Math.floor(Math.abs(number) * Math.pow(10, digits)) / Math.pow(10, digits);
 };
 
-exports.ROUNDUP = function(number, digits) {
+exports.ROUNDUP = function (number, digits) {
   number = utils.parseNumber(number);
   digits = utils.parseNumber(digits);
   if (utils.anyIsError(number, digits)) {
     return error.value;
   }
-  var sign = (number > 0) ? 1 : -1;
-  return sign * (Math.ceil(Math.abs(number) * Math.pow(10, digits))) / Math.pow(10, digits);
+  var sign = number > 0 ? 1 : -1;
+  return sign * Math.ceil(Math.abs(number) * Math.pow(10, digits)) / Math.pow(10, digits);
 };
 
-exports.SEC = function(number) {
+exports.SEC = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -1166,7 +1188,7 @@ exports.SEC = function(number) {
   return 1 / Math.cos(number);
 };
 
-exports.SECH = function(number) {
+exports.SECH = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -1174,7 +1196,7 @@ exports.SECH = function(number) {
   return 2 / (Math.exp(number) + Math.exp(-number));
 };
 
-exports.SERIESSUM = function(x, n, m, coefficients) {
+exports.SERIESSUM = function (x, n, m, coefficients) {
   x = utils.parseNumber(x);
   n = utils.parseNumber(n);
   m = utils.parseNumber(m);
@@ -1189,7 +1211,7 @@ exports.SERIESSUM = function(x, n, m, coefficients) {
   return result;
 };
 
-exports.SIGN = function(number) {
+exports.SIGN = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -1203,7 +1225,7 @@ exports.SIGN = function(number) {
   }
 };
 
-exports.SIN = function(number) {
+exports.SIN = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -1211,7 +1233,7 @@ exports.SIN = function(number) {
   return Math.sin(number);
 };
 
-exports.SINH = function(number) {
+exports.SINH = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -1219,7 +1241,7 @@ exports.SINH = function(number) {
   return (Math.exp(number) - Math.exp(-number)) / 2;
 };
 
-exports.SQRT = function(number) {
+exports.SQRT = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -1230,7 +1252,7 @@ exports.SQRT = function(number) {
   return Math.sqrt(number);
 };
 
-exports.SQRTPI = function(number) {
+exports.SQRTPI = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -1238,15 +1260,15 @@ exports.SQRTPI = function(number) {
   return Math.sqrt(number * Math.PI);
 };
 
-exports.SQRT1_2 = function() {
+exports.SQRT1_2 = function () {
   return 1 / Math.sqrt(2);
 };
 
-exports.SQRT2 = function() {
+exports.SQRT2 = function () {
   return Math.sqrt(2);
 };
 
-exports.SUBTOTAL = function(function_code, ref1) {
+exports.SUBTOTAL = function (function_code, ref1) {
   function_code = utils.parseNumber(function_code);
   if (function_code instanceof Error) {
     return function_code;
@@ -1389,7 +1411,6 @@ exports.LT = function (num1, num2) {
   return num1 < num2;
 };
 
-
 exports.LTE = function (num1, num2) {
   if (arguments.length !== 2) {
     return error.na;
@@ -1434,18 +1455,16 @@ exports.POW = function (base, exponent) {
   return exports.POWER(base, exponent);
 };
 
-exports.SUM = function() {
+exports.SUM = function () {
   var result = 0;
 
-  utils.arrayEach(utils.argsToArray(arguments), function(value) {
+  utils.arrayEach(utils.argsToArray(arguments), function (value) {
     if (typeof value === 'number') {
       result += value;
-
     } else if (typeof value === 'string') {
       var parsed = parseFloat(value);
 
       !isNaN(parsed) && (result += parsed);
-
     } else if (Array.isArray(value)) {
       result += exports.SUM.apply(null, value);
     }
@@ -1454,47 +1473,57 @@ exports.SUM = function() {
   return result;
 };
 
-exports.SUMIF = function(range, criteria) {
+exports.SUMIF = function (range, criteria) {
   range = utils.parseNumberArray(utils.flatten(range));
   if (range instanceof Error) {
     return range;
   }
   var result = 0;
   for (var i = 0; i < range.length; i++) {
-    result += (eval(range[i] + criteria)) ? range[i] : 0; // jshint ignore:line
+    result += eval(range[i] + criteria) ? range[i] : 0; // jshint ignore:line
   }
   return result;
 };
 
-exports.SUMIFS = function() {
-  var args = utils.argsToArray(arguments);
-  var range = utils.parseNumberArray(utils.flatten(args.shift()));
-  if (range instanceof Error) {
-    return range;
+exports.SUMIFS = function (sumRange, ...conditions) {
+  debugger;
+  if (sumRange instanceof Error) {
+    return sumRange;
   }
-  var criteria = args;
-
-  var n_range_elements = range.length;
-  var n_criterias = criteria.length;
-
+  sumRange = utils.simpleFlatten(sumRange);
+  for (let c = 0; c < conditions.length - 1; c += 2) {
+    conditions[c] = utils.simpleFlatten(conditions[c]);
+    let exp = String(conditions[c + 1]);
+    if (['<', '>', '='].indexOf(exp[0]) < 0) {
+      conditions[c + 1] = '==' + utils.simpleAsType(exp); // convert to string & default to equal
+    } else if (exp[0] === '=') {
+      conditions[c + 1] = '=' + exp; // make it double to get legit js.
+    } else {
+      conditions[c + 1] = exp; //convert to string
+    }
+  }
   var result = 0;
-  for (var i = 0; i < n_range_elements; i++) {
-    var el = range[i];
-    var condition = '';
-    for (var c = 0; c < n_criterias; c++) {
-      condition += el + criteria[c];
-      if (c !== n_criterias - 1) {
-        condition += '&&';
-      }
+  for (var i = 0; i < sumRange.length; i++) {
+    var value = sumRange[i];
+    var condition = [];
+    for (var c = 0; c < conditions.length - 1; c += 2) {
+      const criteriaValue = conditions[c][i];
+      const criteriaExp = conditions[c + 1];
+      condition.push(criteriaValue + criteriaExp);
     }
-    if (eval(condition)) { // jshint ignore:line
-      result += el;
+    let evalResult = false;
+    try {
+      evalResult = eval(condition.join(' && '));
+    } catch (e) {} // ignore errors.. excel might not produce valid JS. those are failed condition anyway..
+    if (evalResult) {
+      // jshint ignore:line
+      result += value;
     }
   }
   return result;
 };
 
-exports.SUMPRODUCT = function() {
+exports.SUMPRODUCT = function () {
   if (!arguments || arguments.length === 0) {
     return error.value;
   }
@@ -1532,7 +1561,7 @@ exports.SUMPRODUCT = function() {
   return result;
 };
 
-exports.SUMSQ = function() {
+exports.SUMSQ = function () {
   var numbers = utils.parseNumberArray(utils.flatten(arguments));
   if (numbers instanceof Error) {
     return numbers;
@@ -1540,12 +1569,12 @@ exports.SUMSQ = function() {
   var result = 0;
   var length = numbers.length;
   for (var i = 0; i < length; i++) {
-    result += (information.ISNUMBER(numbers[i])) ? numbers[i] * numbers[i] : 0;
+    result += information.ISNUMBER(numbers[i]) ? numbers[i] * numbers[i] : 0;
   }
   return result;
 };
 
-exports.SUMX2MY2 = function(array_x, array_y) {
+exports.SUMX2MY2 = function (array_x, array_y) {
   array_x = utils.parseNumberArray(utils.flatten(array_x));
   array_y = utils.parseNumberArray(utils.flatten(array_y));
   if (utils.anyIsError(array_x, array_y)) {
@@ -1558,7 +1587,7 @@ exports.SUMX2MY2 = function(array_x, array_y) {
   return result;
 };
 
-exports.SUMX2PY2 = function(array_x, array_y) {
+exports.SUMX2PY2 = function (array_x, array_y) {
   array_x = utils.parseNumberArray(utils.flatten(array_x));
   array_y = utils.parseNumberArray(utils.flatten(array_y));
   if (utils.anyIsError(array_x, array_y)) {
@@ -1573,7 +1602,7 @@ exports.SUMX2PY2 = function(array_x, array_y) {
   return result;
 };
 
-exports.SUMXMY2 = function(array_x, array_y) {
+exports.SUMXMY2 = function (array_x, array_y) {
   array_x = utils.parseNumberArray(utils.flatten(array_x));
   array_y = utils.parseNumberArray(utils.flatten(array_y));
   if (utils.anyIsError(array_x, array_y)) {
@@ -1588,7 +1617,7 @@ exports.SUMXMY2 = function(array_x, array_y) {
   return result;
 };
 
-exports.TAN = function(number) {
+exports.TAN = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -1596,7 +1625,7 @@ exports.TAN = function(number) {
   return Math.tan(number);
 };
 
-exports.TANH = function(number) {
+exports.TANH = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -1605,17 +1634,16 @@ exports.TANH = function(number) {
   return (e2 - 1) / (e2 + 1);
 };
 
-exports.TRUNC = function(number, digits) {
-  digits = (digits === undefined) ? 0 : digits;
+exports.TRUNC = function (number, digits) {
+  digits = digits === undefined ? 0 : digits;
   number = utils.parseNumber(number);
   digits = utils.parseNumber(digits);
   if (utils.anyIsError(number, digits)) {
     return error.value;
   }
-  var sign = (number > 0) ? 1 : -1;
-  return sign * (Math.floor(Math.abs(number) * Math.pow(10, digits))) / Math.pow(10, digits);
+  var sign = number > 0 ? 1 : -1;
+  return sign * Math.floor(Math.abs(number) * Math.pow(10, digits)) / Math.pow(10, digits);
 };
-
 
 /***/ }),
 /* 5 */
@@ -1630,7 +1658,7 @@ var misc = __webpack_require__(12);
 
 var SQRT2PI = 2.5066282746310002;
 
-exports.AVEDEV = function() {
+exports.AVEDEV = function () {
   var range = utils.parseNumberArray(utils.flatten(arguments));
   if (range instanceof Error) {
     return range;
@@ -1638,7 +1666,7 @@ exports.AVEDEV = function() {
   return jStat.sum(jStat(range).subtract(jStat.mean(range)).abs()[0]) / range.length;
 };
 
-exports.AVERAGE = function() {
+exports.AVERAGE = function () {
   var range = utils.numbers(utils.flatten(arguments));
   var n = range.length;
   var sum = 0;
@@ -1658,7 +1686,7 @@ exports.AVERAGE = function() {
   return result;
 };
 
-exports.AVERAGEA = function() {
+exports.AVERAGEA = function () {
   var range = utils.flatten(arguments);
   var n = range.length;
   var sum = 0;
@@ -1685,7 +1713,7 @@ exports.AVERAGEA = function() {
   return result;
 };
 
-exports.AVERAGEIF = function(range, criteria, average_range) {
+exports.AVERAGEIF = function (range, criteria, average_range) {
   if (arguments.length <= 1) {
     return error.na;
   }
@@ -1698,7 +1726,8 @@ exports.AVERAGEIF = function(range, criteria, average_range) {
   var average_count = 0;
   var result = 0;
   for (var i = 0; i < range.length; i++) {
-    if (eval(range[i] + criteria)) { // jshint ignore:line
+    if (eval(range[i] + criteria)) {
+      // jshint ignore:line
       result += average_range[i];
       average_count++;
     }
@@ -1706,7 +1735,7 @@ exports.AVERAGEIF = function(range, criteria, average_range) {
   return result / average_count;
 };
 
-exports.AVERAGEIFS = function() {
+exports.AVERAGEIFS = function () {
   // Does not work with multi dimensional ranges yet!
   //http://office.microsoft.com/en-001/excel-help/averageifs-function-HA010047493.aspx
   var args = utils.argsToArray(arguments);
@@ -1722,7 +1751,8 @@ exports.AVERAGEIFS = function() {
         condition += '&&';
       }
     }
-    if (eval(condition)) { // jshint ignore:line
+    if (eval(condition)) {
+      // jshint ignore:line
       result += range[i];
       count++;
     }
@@ -1738,13 +1768,13 @@ exports.AVERAGEIFS = function() {
 
 exports.BETA = {};
 
-exports.BETA.DIST = function(x, alpha, beta, cumulative, A, B) {
+exports.BETA.DIST = function (x, alpha, beta, cumulative, A, B) {
   if (arguments.length < 4) {
     return error.value;
   }
 
-  A = (A === undefined) ? 0 : A;
-  B = (B === undefined) ? 1 : B;
+  A = A === undefined ? 0 : A;
+  B = B === undefined ? 1 : B;
 
   x = utils.parseNumber(x);
   alpha = utils.parseNumber(alpha);
@@ -1756,12 +1786,12 @@ exports.BETA.DIST = function(x, alpha, beta, cumulative, A, B) {
   }
 
   x = (x - A) / (B - A);
-  return (cumulative) ? jStat.beta.cdf(x, alpha, beta) : jStat.beta.pdf(x, alpha, beta);
+  return cumulative ? jStat.beta.cdf(x, alpha, beta) : jStat.beta.pdf(x, alpha, beta);
 };
 
-exports.BETA.INV = function(probability, alpha, beta, A, B) {
-  A = (A === undefined) ? 0 : A;
-  B = (B === undefined) ? 1 : B;
+exports.BETA.INV = function (probability, alpha, beta, A, B) {
+  A = A === undefined ? 0 : A;
+  B = B === undefined ? 1 : B;
 
   probability = utils.parseNumber(probability);
   alpha = utils.parseNumber(alpha);
@@ -1777,7 +1807,7 @@ exports.BETA.INV = function(probability, alpha, beta, A, B) {
 
 exports.BINOM = {};
 
-exports.BINOM.DIST = function(successes, trials, probability, cumulative) {
+exports.BINOM.DIST = function (successes, trials, probability, cumulative) {
   successes = utils.parseNumber(successes);
   trials = utils.parseNumber(trials);
   probability = utils.parseNumber(probability);
@@ -1785,11 +1815,11 @@ exports.BINOM.DIST = function(successes, trials, probability, cumulative) {
   if (utils.anyIsError(successes, trials, probability, cumulative)) {
     return error.value;
   }
-  return (cumulative) ? jStat.binomial.cdf(successes, trials, probability) : jStat.binomial.pdf(successes, trials, probability);
+  return cumulative ? jStat.binomial.cdf(successes, trials, probability) : jStat.binomial.pdf(successes, trials, probability);
 };
 
-exports.BINOM.DIST.RANGE = function(trials, probability, successes, successes2) {
-  successes2 = (successes2 === undefined) ? successes : successes2;
+exports.BINOM.DIST.RANGE = function (trials, probability, successes, successes2) {
+  successes2 = successes2 === undefined ? successes : successes2;
 
   trials = utils.parseNumber(trials);
   probability = utils.parseNumber(probability);
@@ -1806,7 +1836,7 @@ exports.BINOM.DIST.RANGE = function(trials, probability, successes, successes2) 
   return result;
 };
 
-exports.BINOM.INV = function(trials, probability, alpha) {
+exports.BINOM.INV = function (trials, probability, alpha) {
   trials = utils.parseNumber(trials);
   probability = utils.parseNumber(probability);
   alpha = utils.parseNumber(alpha);
@@ -1825,17 +1855,17 @@ exports.BINOM.INV = function(trials, probability, alpha) {
 
 exports.CHISQ = {};
 
-exports.CHISQ.DIST = function(x, k, cumulative) {
+exports.CHISQ.DIST = function (x, k, cumulative) {
   x = utils.parseNumber(x);
   k = utils.parseNumber(k);
   if (utils.anyIsError(x, k)) {
     return error.value;
   }
 
-  return (cumulative) ? jStat.chisquare.cdf(x, k) : jStat.chisquare.pdf(x, k);
+  return cumulative ? jStat.chisquare.cdf(x, k) : jStat.chisquare.pdf(x, k);
 };
 
-exports.CHISQ.DIST.RT = function(x, k) {
+exports.CHISQ.DIST.RT = function (x, k) {
   if (!x | !k) {
     return error.na;
   }
@@ -1844,14 +1874,14 @@ exports.CHISQ.DIST.RT = function(x, k) {
     return error.num;
   }
 
-  if ((typeof x !== 'number') || (typeof k !== 'number')) {
+  if (typeof x !== 'number' || typeof k !== 'number') {
     return error.value;
   }
 
-  return 1 -  jStat.chisquare.cdf(x, k);
+  return 1 - jStat.chisquare.cdf(x, k);
 };
 
-exports.CHISQ.INV = function(probability, k) {
+exports.CHISQ.INV = function (probability, k) {
   probability = utils.parseNumber(probability);
   k = utils.parseNumber(k);
   if (utils.anyIsError(probability, k)) {
@@ -1860,7 +1890,7 @@ exports.CHISQ.INV = function(probability, k) {
   return jStat.chisquare.inv(probability, k);
 };
 
-exports.CHISQ.INV.RT = function(p, k) {
+exports.CHISQ.INV.RT = function (p, k) {
   if (!p | !k) {
     return error.na;
   }
@@ -1869,19 +1899,19 @@ exports.CHISQ.INV.RT = function(p, k) {
     return error.num;
   }
 
-  if ((typeof p !== 'number') || (typeof k !== 'number')) {
+  if (typeof p !== 'number' || typeof k !== 'number') {
     return error.value;
   }
 
   return jStat.chisquare.inv(1.0 - p, k);
 };
 
-exports.CHISQ.TEST = function(observed, expected) {
+exports.CHISQ.TEST = function (observed, expected) {
   if (arguments.length !== 2) {
     return error.na;
   }
 
-  if ((!(observed instanceof Array)) || (!(expected instanceof Array))) {
+  if (!(observed instanceof Array) || !(expected instanceof Array)) {
     return error.value;
   }
 
@@ -1889,8 +1919,7 @@ exports.CHISQ.TEST = function(observed, expected) {
     return error.value;
   }
 
-  if (observed[0] && expected[0] &&
-    observed[0].length !== expected[0].length) {
+  if (observed[0] && expected[0] && observed[0].length !== expected[0].length) {
     return error.value;
   }
 
@@ -1898,7 +1927,7 @@ exports.CHISQ.TEST = function(observed, expected) {
   var tmp, i, j;
 
   // Convert single-dimension array into two-dimension array
-  for (i = 0; i < row; i ++) {
+  for (i = 0; i < row; i++) {
     if (!(observed[i] instanceof Array)) {
       tmp = observed[i];
       observed[i] = [];
@@ -1912,41 +1941,41 @@ exports.CHISQ.TEST = function(observed, expected) {
   }
 
   var col = observed[0].length;
-  var dof = (col === 1) ? row-1 : (row-1)*(col-1);
+  var dof = col === 1 ? row - 1 : (row - 1) * (col - 1);
   var xsqr = 0;
-  var Pi =Math.PI;
+  var Pi = Math.PI;
 
-  for (i = 0; i < row; i ++) {
-    for (j = 0; j < col; j ++) {
-      xsqr += Math.pow((observed[i][j] - expected[i][j]), 2) / expected[i][j];
+  for (i = 0; i < row; i++) {
+    for (j = 0; j < col; j++) {
+      xsqr += Math.pow(observed[i][j] - expected[i][j], 2) / expected[i][j];
     }
   }
 
   // Get independency by X square and its degree of freedom
   function ChiSq(xsqr, dof) {
     var p = Math.exp(-0.5 * xsqr);
-    if((dof%2) === 1) {
-      p = p * Math.sqrt(2 * xsqr/Pi);
+    if (dof % 2 === 1) {
+      p = p * Math.sqrt(2 * xsqr / Pi);
     }
     var k = dof;
-    while(k >= 2) {
-      p = p * xsqr/k;
+    while (k >= 2) {
+      p = p * xsqr / k;
       k = k - 2;
     }
     var t = p;
     var a = dof;
-    while (t > 0.0000000001*p) {
+    while (t > 0.0000000001 * p) {
       a = a + 2;
-      t = t * xsqr/a;
+      t = t * xsqr / a;
       p = p + t;
     }
-    return 1-p;
+    return 1 - p;
   }
 
   return Math.round(ChiSq(xsqr, dof) * 1000000) / 1000000;
 };
 
-exports.COLUMN = function(matrix, index) {
+exports.COLUMN = function (matrix, index) {
   if (arguments.length !== 2) {
     return error.na;
   }
@@ -1955,7 +1984,7 @@ exports.COLUMN = function(matrix, index) {
     return error.num;
   }
 
-  if (!(matrix instanceof Array) || (typeof index !== 'number')) {
+  if (!(matrix instanceof Array) || typeof index !== 'number') {
     return error.value;
   }
 
@@ -1966,7 +1995,7 @@ exports.COLUMN = function(matrix, index) {
   return jStat.col(matrix, index);
 };
 
-exports.COLUMNS = function(matrix) {
+exports.COLUMNS = function (matrix) {
   if (arguments.length !== 1) {
     return error.na;
   }
@@ -1984,7 +2013,7 @@ exports.COLUMNS = function(matrix) {
 
 exports.CONFIDENCE = {};
 
-exports.CONFIDENCE.NORM = function(alpha, sd, n) {
+exports.CONFIDENCE.NORM = function (alpha, sd, n) {
   alpha = utils.parseNumber(alpha);
   sd = utils.parseNumber(sd);
   n = utils.parseNumber(n);
@@ -1994,7 +2023,7 @@ exports.CONFIDENCE.NORM = function(alpha, sd, n) {
   return jStat.normalci(1, alpha, sd, n)[1] - 1;
 };
 
-exports.CONFIDENCE.T = function(alpha, sd, n) {
+exports.CONFIDENCE.T = function (alpha, sd, n) {
   alpha = utils.parseNumber(alpha);
   sd = utils.parseNumber(sd);
   n = utils.parseNumber(n);
@@ -2004,7 +2033,7 @@ exports.CONFIDENCE.T = function(alpha, sd, n) {
   return jStat.tci(1, alpha, sd, n)[1] - 1;
 };
 
-exports.CORREL = function(array1, array2) {
+exports.CORREL = function (array1, array2) {
   array1 = utils.parseNumberArray(utils.flatten(array1));
   array2 = utils.parseNumberArray(utils.flatten(array2));
   if (utils.anyIsError(array1, array2)) {
@@ -2013,11 +2042,11 @@ exports.CORREL = function(array1, array2) {
   return jStat.corrcoeff(array1, array2);
 };
 
-exports.COUNT = function() {
+exports.COUNT = function () {
   return utils.numbers(utils.flatten(arguments)).length;
 };
 
-exports.COUNTA = function() {
+exports.COUNTA = function () {
   var range = utils.flatten(arguments);
   return range.length - exports.COUNTBLANK(range);
 };
@@ -2035,8 +2064,7 @@ exports.COUNTIN = function (range, value) {
   return result;
 };
 
-
-exports.COUNTBLANK = function() {
+exports.COUNTBLANK = function () {
   var range = utils.flatten(arguments);
   var blanks = 0;
   var element;
@@ -2049,7 +2077,7 @@ exports.COUNTBLANK = function() {
   return blanks;
 };
 
-exports.COUNTIF = function(range, criteria) {
+exports.COUNTIF = function (range, criteria) {
   range = utils.flatten(range);
   if (!/[<>=!]/.test(criteria)) {
     criteria = '=="' + criteria + '"';
@@ -2057,11 +2085,13 @@ exports.COUNTIF = function(range, criteria) {
   var matches = 0;
   for (var i = 0; i < range.length; i++) {
     if (typeof range[i] !== 'string') {
-      if (eval(range[i] + criteria)) { // jshint ignore:line
+      if (eval(range[i] + criteria)) {
+        // jshint ignore:line
         matches++;
       }
     } else {
-      if (eval('"' + range[i] + '"' + criteria)) { // jshint ignore:line
+      if (eval('"' + range[i] + '"' + criteria)) {
+        // jshint ignore:line
         matches++;
       }
     }
@@ -2069,7 +2099,7 @@ exports.COUNTIF = function(range, criteria) {
   return matches;
 };
 
-exports.COUNTIFS = function() {
+exports.COUNTIFS = function () {
   var args = utils.argsToArray(arguments);
   var results = new Array(utils.flatten(args[0]).length);
   for (var i = 0; i < results.length; i++) {
@@ -2104,7 +2134,7 @@ exports.COUNTUNIQUE = function () {
 
 exports.COVARIANCE = {};
 
-exports.COVARIANCE.P = function(array1, array2) {
+exports.COVARIANCE.P = function (array1, array2) {
   array1 = utils.parseNumberArray(utils.flatten(array1));
   array2 = utils.parseNumberArray(utils.flatten(array2));
   if (utils.anyIsError(array1, array2)) {
@@ -2120,7 +2150,7 @@ exports.COVARIANCE.P = function(array1, array2) {
   return result / n;
 };
 
-exports.COVARIANCE.S = function(array1, array2) {
+exports.COVARIANCE.S = function (array1, array2) {
   array1 = utils.parseNumberArray(utils.flatten(array1));
   array2 = utils.parseNumberArray(utils.flatten(array2));
   if (utils.anyIsError(array1, array2)) {
@@ -2129,7 +2159,7 @@ exports.COVARIANCE.S = function(array1, array2) {
   return jStat.covariance(array1, array2);
 };
 
-exports.DEVSQ = function() {
+exports.DEVSQ = function () {
   var range = utils.parseNumberArray(utils.flatten(arguments));
   if (range instanceof Error) {
     return range;
@@ -2137,35 +2167,35 @@ exports.DEVSQ = function() {
   var mean = jStat.mean(range);
   var result = 0;
   for (var i = 0; i < range.length; i++) {
-    result += Math.pow((range[i] - mean), 2);
+    result += Math.pow(range[i] - mean, 2);
   }
   return result;
 };
 
 exports.EXPON = {};
 
-exports.EXPON.DIST = function(x, lambda, cumulative) {
+exports.EXPON.DIST = function (x, lambda, cumulative) {
   x = utils.parseNumber(x);
   lambda = utils.parseNumber(lambda);
   if (utils.anyIsError(x, lambda)) {
     return error.value;
   }
-  return (cumulative) ? jStat.exponential.cdf(x, lambda) : jStat.exponential.pdf(x, lambda);
+  return cumulative ? jStat.exponential.cdf(x, lambda) : jStat.exponential.pdf(x, lambda);
 };
 
 exports.F = {};
 
-exports.F.DIST = function(x, d1, d2, cumulative) {
+exports.F.DIST = function (x, d1, d2, cumulative) {
   x = utils.parseNumber(x);
   d1 = utils.parseNumber(d1);
   d2 = utils.parseNumber(d2);
   if (utils.anyIsError(x, d1, d2)) {
     return error.value;
   }
-  return (cumulative) ? jStat.centralF.cdf(x, d1, d2) : jStat.centralF.pdf(x, d1, d2);
+  return cumulative ? jStat.centralF.cdf(x, d1, d2) : jStat.centralF.pdf(x, d1, d2);
 };
 
-exports.F.DIST.RT = function(x, d1, d2) {
+exports.F.DIST.RT = function (x, d1, d2) {
   if (arguments.length !== 3) {
     return error.na;
   }
@@ -2174,14 +2204,14 @@ exports.F.DIST.RT = function(x, d1, d2) {
     return error.num;
   }
 
-  if ((typeof x !== 'number') || (typeof d1 !== 'number') || (typeof d2 !== 'number')) {
+  if (typeof x !== 'number' || typeof d1 !== 'number' || typeof d2 !== 'number') {
     return error.value;
   }
 
   return 1 - jStat.centralF.cdf(x, d1, d2);
 };
 
-exports.F.INV = function(probability, d1, d2) {
+exports.F.INV = function (probability, d1, d2) {
   probability = utils.parseNumber(probability);
   d1 = utils.parseNumber(d1);
   d2 = utils.parseNumber(d2);
@@ -2195,7 +2225,7 @@ exports.F.INV = function(probability, d1, d2) {
   return jStat.centralF.inv(probability, d1, d2);
 };
 
-exports.F.INV.RT = function(p, d1, d2) {
+exports.F.INV.RT = function (p, d1, d2) {
   if (arguments.length !== 3) {
     return error.na;
   }
@@ -2204,14 +2234,14 @@ exports.F.INV.RT = function(p, d1, d2) {
     return error.num;
   }
 
-  if ((typeof p !== 'number') || (typeof d1 !== 'number') || (typeof d2 !== 'number')) {
+  if (typeof p !== 'number' || typeof d1 !== 'number' || typeof d2 !== 'number') {
     return error.value;
   }
 
   return jStat.centralF.inv(1.0 - p, d1, d2);
 };
 
-exports.F.TEST = function(array1, array2) {
+exports.F.TEST = function (array1, array2) {
   if (!array1 || !array2) {
     return error.na;
   }
@@ -2224,10 +2254,10 @@ exports.F.TEST = function(array1, array2) {
     return error.div0;
   }
 
-  var sumOfSquares = function(values, x1) {
+  var sumOfSquares = function (values, x1) {
     var sum = 0;
     for (var i = 0; i < values.length; i++) {
-      sum +=Math.pow((values[i] - x1), 2);
+      sum += Math.pow(values[i] - x1, 2);
     }
     return sum;
   };
@@ -2240,7 +2270,7 @@ exports.F.TEST = function(array1, array2) {
   return sum1 / sum2;
 };
 
-exports.FISHER = function(x) {
+exports.FISHER = function (x) {
   x = utils.parseNumber(x);
   if (x instanceof Error) {
     return x;
@@ -2248,7 +2278,7 @@ exports.FISHER = function(x) {
   return Math.log((1 + x) / (1 - x)) / 2;
 };
 
-exports.FISHERINV = function(y) {
+exports.FISHERINV = function (y) {
   y = utils.parseNumber(y);
   if (y instanceof Error) {
     return y;
@@ -2257,7 +2287,7 @@ exports.FISHERINV = function(y) {
   return (e2y - 1) / (e2y + 1);
 };
 
-exports.FORECAST = function(x, data_y, data_x) {
+exports.FORECAST = function (x, data_y, data_x) {
   x = utils.parseNumber(x);
   data_y = utils.parseNumberArray(utils.flatten(data_y));
   data_x = utils.parseNumberArray(utils.flatten(data_x));
@@ -2278,7 +2308,7 @@ exports.FORECAST = function(x, data_y, data_x) {
   return a + b * x;
 };
 
-exports.FREQUENCY = function(data, bins) {
+exports.FREQUENCY = function (data, bins) {
   data = utils.parseNumberArray(utils.flatten(data));
   bins = utils.parseNumberArray(utils.flatten(bins));
   if (utils.anyIsError(data, bins)) {
@@ -2308,8 +2338,7 @@ exports.FREQUENCY = function(data, bins) {
   return r;
 };
 
-
-exports.GAMMA = function(number) {
+exports.GAMMA = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -2326,7 +2355,7 @@ exports.GAMMA = function(number) {
   return jStat.gammafn(number);
 };
 
-exports.GAMMA.DIST = function(value, alpha, beta, cumulative) {
+exports.GAMMA.DIST = function (value, alpha, beta, cumulative) {
   if (arguments.length !== 4) {
     return error.na;
   }
@@ -2335,14 +2364,14 @@ exports.GAMMA.DIST = function(value, alpha, beta, cumulative) {
     return error.value;
   }
 
-  if ((typeof value !== 'number') || (typeof alpha !== 'number') || (typeof beta !== 'number')) {
+  if (typeof value !== 'number' || typeof alpha !== 'number' || typeof beta !== 'number') {
     return error.value;
   }
 
   return cumulative ? jStat.gamma.cdf(value, alpha, beta, true) : jStat.gamma.pdf(value, alpha, beta, false);
 };
 
-exports.GAMMA.INV = function(probability, alpha, beta) {
+exports.GAMMA.INV = function (probability, alpha, beta) {
   if (arguments.length !== 3) {
     return error.na;
   }
@@ -2351,14 +2380,14 @@ exports.GAMMA.INV = function(probability, alpha, beta) {
     return error.num;
   }
 
-  if ((typeof probability !== 'number') || (typeof alpha !== 'number') || (typeof beta !== 'number')) {
+  if (typeof probability !== 'number' || typeof alpha !== 'number' || typeof beta !== 'number') {
     return error.value;
   }
 
   return jStat.gamma.inv(probability, alpha, beta);
 };
 
-exports.GAMMALN = function(number) {
+exports.GAMMALN = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -2366,7 +2395,7 @@ exports.GAMMALN = function(number) {
   return jStat.gammaln(number);
 };
 
-exports.GAMMALN.PRECISE = function(x) {
+exports.GAMMALN.PRECISE = function (x) {
   if (arguments.length !== 1) {
     return error.na;
   }
@@ -2382,7 +2411,7 @@ exports.GAMMALN.PRECISE = function(x) {
   return jStat.gammaln(x);
 };
 
-exports.GAUSS = function(z) {
+exports.GAUSS = function (z) {
   z = utils.parseNumber(z);
   if (z instanceof Error) {
     return z;
@@ -2390,7 +2419,7 @@ exports.GAUSS = function(z) {
   return jStat.normal.cdf(z, 0, 1) - 0.5;
 };
 
-exports.GEOMEAN = function() {
+exports.GEOMEAN = function () {
   var args = utils.parseNumberArray(utils.flatten(arguments));
   if (args instanceof Error) {
     return args;
@@ -2398,7 +2427,7 @@ exports.GEOMEAN = function() {
   return jStat.geomean(args);
 };
 
-exports.GROWTH = function(known_y, known_x, new_x, use_const) {
+exports.GROWTH = function (known_y, known_x, new_x, use_const) {
   // Credits: Ilmari Karonen (http://stackoverflow.com/questions/14161990/how-to-implement-growth-function-in-javascript)
 
   known_y = utils.parseNumberArray(known_y);
@@ -2426,7 +2455,6 @@ exports.GROWTH = function(known_y, known_x, new_x, use_const) {
   if (utils.anyIsError(known_x, new_x)) {
     return error.value;
   }
-
 
   if (use_const === undefined) {
     use_const = true;
@@ -2470,7 +2498,7 @@ exports.GROWTH = function(known_y, known_x, new_x, use_const) {
   return new_y;
 };
 
-exports.HARMEAN = function() {
+exports.HARMEAN = function () {
   var range = utils.parseNumberArray(utils.flatten(arguments));
   if (range instanceof Error) {
     return range;
@@ -2485,7 +2513,7 @@ exports.HARMEAN = function() {
 
 exports.HYPGEOM = {};
 
-exports.HYPGEOM.DIST = function(x, n, M, N, cumulative) {
+exports.HYPGEOM.DIST = function (x, n, M, N, cumulative) {
   x = utils.parseNumber(x);
   n = utils.parseNumber(n);
   M = utils.parseNumber(M);
@@ -2506,10 +2534,10 @@ exports.HYPGEOM.DIST = function(x, n, M, N, cumulative) {
     return result;
   }
 
-  return (cumulative) ? cdf(x, n, M, N) : pdf(x, n, M, N);
+  return cumulative ? cdf(x, n, M, N) : pdf(x, n, M, N);
 };
 
-exports.INTERCEPT = function(known_y, known_x) {
+exports.INTERCEPT = function (known_y, known_x) {
   known_y = utils.parseNumberArray(known_y);
   known_x = utils.parseNumberArray(known_x);
   if (utils.anyIsError(known_y, known_x)) {
@@ -2521,7 +2549,7 @@ exports.INTERCEPT = function(known_y, known_x) {
   return exports.FORECAST(0, known_y, known_x);
 };
 
-exports.KURT = function() {
+exports.KURT = function () {
   var range = utils.parseNumberArray(utils.flatten(arguments));
   if (range instanceof Error) {
     return range;
@@ -2533,21 +2561,21 @@ exports.KURT = function() {
     sigma += Math.pow(range[i] - mean, 4);
   }
   sigma = sigma / Math.pow(jStat.stdev(range, true), 4);
-  return ((n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))) * sigma - 3 * (n - 1) * (n - 1) / ((n - 2) * (n - 3));
+  return n * (n + 1) / ((n - 1) * (n - 2) * (n - 3)) * sigma - 3 * (n - 1) * (n - 1) / ((n - 2) * (n - 3));
 };
 
-exports.LARGE = function(range, k) {
+exports.LARGE = function (range, k) {
   range = utils.parseNumberArray(utils.flatten(range));
   k = utils.parseNumber(k);
   if (utils.anyIsError(range, k)) {
     return range;
   }
-  return range.sort(function(a, b) {
+  return range.sort(function (a, b) {
     return b - a;
   })[k - 1];
 };
 
-exports.LINEST = function(data_y, data_x) {
+exports.LINEST = function (data_y, data_x) {
   data_y = utils.parseNumberArray(utils.flatten(data_y));
   data_x = utils.parseNumberArray(utils.flatten(data_x));
   if (utils.anyIsError(data_y, data_x)) {
@@ -2571,35 +2599,35 @@ exports.LINEST = function(data_y, data_x) {
 // http://office.microsoft.com/en-us/starter-help/logest-function-HP010342665.aspx
 // LOGEST returns are based on the following linear model:
 // ln y = x1 ln m1 + ... + xn ln mn + ln b
-exports.LOGEST = function(data_y, data_x) {
+exports.LOGEST = function (data_y, data_x) {
   data_y = utils.parseNumberArray(utils.flatten(data_y));
   data_x = utils.parseNumberArray(utils.flatten(data_x));
   if (utils.anyIsError(data_y, data_x)) {
     return error.value;
   }
-  for (var i = 0; i < data_y.length; i ++) {
+  for (var i = 0; i < data_y.length; i++) {
     data_y[i] = Math.log(data_y[i]);
   }
 
   var result = exports.LINEST(data_y, data_x);
-  result[0] = Math.round(Math.exp(result[0])*1000000)/1000000;
-  result[1] = Math.round(Math.exp(result[1])*1000000)/1000000;
+  result[0] = Math.round(Math.exp(result[0]) * 1000000) / 1000000;
+  result[1] = Math.round(Math.exp(result[1]) * 1000000) / 1000000;
   return result;
 };
 
 exports.LOGNORM = {};
 
-exports.LOGNORM.DIST = function(x, mean, sd, cumulative) {
+exports.LOGNORM.DIST = function (x, mean, sd, cumulative) {
   x = utils.parseNumber(x);
   mean = utils.parseNumber(mean);
   sd = utils.parseNumber(sd);
   if (utils.anyIsError(x, mean, sd)) {
     return error.value;
   }
-  return (cumulative) ? jStat.lognormal.cdf(x, mean, sd) : jStat.lognormal.pdf(x, mean, sd);
+  return cumulative ? jStat.lognormal.cdf(x, mean, sd) : jStat.lognormal.pdf(x, mean, sd);
 };
 
-exports.LOGNORM.INV = function(probability, mean, sd) {
+exports.LOGNORM.INV = function (probability, mean, sd) {
   probability = utils.parseNumber(probability);
   mean = utils.parseNumber(mean);
   sd = utils.parseNumber(sd);
@@ -2609,17 +2637,17 @@ exports.LOGNORM.INV = function(probability, mean, sd) {
   return jStat.lognormal.inv(probability, mean, sd);
 };
 
-exports.MAX = function() {
+exports.MAX = function () {
   var range = utils.numbers(utils.flatten(arguments));
-  return (range.length === 0) ? 0 : Math.max.apply(Math, range);
+  return range.length === 0 ? 0 : Math.max.apply(Math, range);
 };
 
-exports.MAXA = function() {
+exports.MAXA = function () {
   var range = utils.arrayValuesToNumbers(utils.flatten(arguments));
-  return (range.length === 0) ? 0 : Math.max.apply(Math, range);
+  return range.length === 0 ? 0 : Math.max.apply(Math, range);
 };
 
-exports.MEDIAN = function() {
+exports.MEDIAN = function () {
   var range = utils.arrayValuesToNumbers(utils.flatten(arguments));
   var result = jStat.median(range);
 
@@ -2630,19 +2658,19 @@ exports.MEDIAN = function() {
   return result;
 };
 
-exports.MIN = function() {
+exports.MIN = function () {
   var range = utils.numbers(utils.flatten(arguments));
-  return (range.length === 0) ? 0 : Math.min.apply(Math, range);
+  return range.length === 0 ? 0 : Math.min.apply(Math, range);
 };
 
-exports.MINA = function() {
+exports.MINA = function () {
   var range = utils.arrayValuesToNumbers(utils.flatten(arguments));
-  return (range.length === 0) ? 0 : Math.min.apply(Math, range);
+  return range.length === 0 ? 0 : Math.min.apply(Math, range);
 };
 
 exports.MODE = {};
 
-exports.MODE.MULT = function() {
+exports.MODE.MULT = function () {
   // Credits: Roönaän
   var range = utils.parseNumberArray(utils.flatten(arguments));
   if (range instanceof Error) {
@@ -2668,31 +2696,31 @@ exports.MODE.MULT = function() {
   return maxItems;
 };
 
-exports.MODE.SNGL = function() {
+exports.MODE.SNGL = function () {
   var range = utils.parseNumberArray(utils.flatten(arguments));
   if (range instanceof Error) {
     return range;
   }
-  return exports.MODE.MULT(range).sort(function(a, b) {
+  return exports.MODE.MULT(range).sort(function (a, b) {
     return a - b;
   })[0];
 };
 
 exports.NEGBINOM = {};
 
-exports.NEGBINOM.DIST = function(k, r, p, cumulative) {
+exports.NEGBINOM.DIST = function (k, r, p, cumulative) {
   k = utils.parseNumber(k);
   r = utils.parseNumber(r);
   p = utils.parseNumber(p);
   if (utils.anyIsError(k, r, p)) {
     return error.value;
   }
-  return (cumulative) ? jStat.negbin.cdf(k, r, p) : jStat.negbin.pdf(k, r, p);
+  return cumulative ? jStat.negbin.cdf(k, r, p) : jStat.negbin.pdf(k, r, p);
 };
 
 exports.NORM = {};
 
-exports.NORM.DIST = function(x, mean, sd, cumulative) {
+exports.NORM.DIST = function (x, mean, sd, cumulative) {
   x = utils.parseNumber(x);
   mean = utils.parseNumber(mean);
   sd = utils.parseNumber(sd);
@@ -2704,10 +2732,10 @@ exports.NORM.DIST = function(x, mean, sd, cumulative) {
   }
 
   // Return normal distribution computed by jStat [http://jstat.org]
-  return (cumulative) ? jStat.normal.cdf(x, mean, sd) : jStat.normal.pdf(x, mean, sd);
+  return cumulative ? jStat.normal.cdf(x, mean, sd) : jStat.normal.pdf(x, mean, sd);
 };
 
-exports.NORM.INV = function(probability, mean, sd) {
+exports.NORM.INV = function (probability, mean, sd) {
   probability = utils.parseNumber(probability);
   mean = utils.parseNumber(mean);
   sd = utils.parseNumber(sd);
@@ -2719,15 +2747,15 @@ exports.NORM.INV = function(probability, mean, sd) {
 
 exports.NORM.S = {};
 
-exports.NORM.S.DIST = function(z, cumulative) {
+exports.NORM.S.DIST = function (z, cumulative) {
   z = utils.parseNumber(z);
   if (z instanceof Error) {
     return error.value;
   }
-  return (cumulative) ? jStat.normal.cdf(z, 0, 1) : jStat.normal.pdf(z, 0, 1);
+  return cumulative ? jStat.normal.cdf(z, 0, 1) : jStat.normal.pdf(z, 0, 1);
 };
 
-exports.NORM.S.INV = function(probability) {
+exports.NORM.S.INV = function (probability) {
   probability = utils.parseNumber(probability);
   if (probability instanceof Error) {
     return error.value;
@@ -2735,7 +2763,7 @@ exports.NORM.S.INV = function(probability) {
   return jStat.normal.inv(probability, 0, 1);
 };
 
-exports.PEARSON = function(data_x, data_y) {
+exports.PEARSON = function (data_x, data_y) {
   data_y = utils.parseNumberArray(utils.flatten(data_y));
   data_x = utils.parseNumberArray(utils.flatten(data_x));
   if (utils.anyIsError(data_y, data_x)) {
@@ -2757,13 +2785,13 @@ exports.PEARSON = function(data_x, data_y) {
 
 exports.PERCENTILE = {};
 
-exports.PERCENTILE.EXC = function(array, k) {
+exports.PERCENTILE.EXC = function (array, k) {
   array = utils.parseNumberArray(utils.flatten(array));
   k = utils.parseNumber(k);
   if (utils.anyIsError(array, k)) {
     return error.value;
   }
-  array = array.sort(function(a, b) {
+  array = array.sort(function (a, b) {
     {
       return a - b;
     }
@@ -2774,35 +2802,35 @@ exports.PERCENTILE.EXC = function(array, k) {
   }
   var l = k * (n + 1) - 1;
   var fl = Math.floor(l);
-  return utils.cleanFloat((l === fl) ? array[l] : array[fl] + (l - fl) * (array[fl + 1] - array[fl]));
+  return utils.cleanFloat(l === fl ? array[l] : array[fl] + (l - fl) * (array[fl + 1] - array[fl]));
 };
 
-exports.PERCENTILE.INC = function(array, k) {
+exports.PERCENTILE.INC = function (array, k) {
   array = utils.parseNumberArray(utils.flatten(array));
   k = utils.parseNumber(k);
   if (utils.anyIsError(array, k)) {
     return error.value;
   }
-  array = array.sort(function(a, b) {
+  array = array.sort(function (a, b) {
     return a - b;
   });
   var n = array.length;
   var l = k * (n - 1);
   var fl = Math.floor(l);
-  return utils.cleanFloat((l === fl) ? array[l] : array[fl] + (l - fl) * (array[fl + 1] - array[fl]));
+  return utils.cleanFloat(l === fl ? array[l] : array[fl] + (l - fl) * (array[fl + 1] - array[fl]));
 };
 
 exports.PERCENTRANK = {};
 
-exports.PERCENTRANK.EXC = function(array, x, significance) {
-  significance = (significance === undefined) ? 3 : significance;
+exports.PERCENTRANK.EXC = function (array, x, significance) {
+  significance = significance === undefined ? 3 : significance;
   array = utils.parseNumberArray(utils.flatten(array));
   x = utils.parseNumber(x);
   significance = utils.parseNumber(significance);
   if (utils.anyIsError(array, x, significance)) {
     return error.value;
   }
-  array = array.sort(function(a, b) {
+  array = array.sort(function (a, b) {
     return a - b;
   });
   var uniques = misc.UNIQUE.apply(null, array);
@@ -2825,15 +2853,15 @@ exports.PERCENTRANK.EXC = function(array, x, significance) {
   return Math.floor(result * power) / power;
 };
 
-exports.PERCENTRANK.INC = function(array, x, significance) {
-  significance = (significance === undefined) ? 3 : significance;
+exports.PERCENTRANK.INC = function (array, x, significance) {
+  significance = significance === undefined ? 3 : significance;
   array = utils.parseNumberArray(utils.flatten(array));
   x = utils.parseNumber(x);
   significance = utils.parseNumber(significance);
   if (utils.anyIsError(array, x, significance)) {
     return error.value;
   }
-  array = array.sort(function(a, b) {
+  array = array.sort(function (a, b) {
     return a - b;
   });
   var uniques = misc.UNIQUE.apply(null, array);
@@ -2856,7 +2884,7 @@ exports.PERCENTRANK.INC = function(array, x, significance) {
   return Math.floor(result * power) / power;
 };
 
-exports.PERMUT = function(number, number_chosen) {
+exports.PERMUT = function (number, number_chosen) {
   number = utils.parseNumber(number);
   number_chosen = utils.parseNumber(number_chosen);
   if (utils.anyIsError(number, number_chosen)) {
@@ -2865,7 +2893,7 @@ exports.PERMUT = function(number, number_chosen) {
   return mathTrig.FACT(number) / mathTrig.FACT(number - number_chosen);
 };
 
-exports.PERMUTATIONA = function(number, number_chosen) {
+exports.PERMUTATIONA = function (number, number_chosen) {
   number = utils.parseNumber(number);
   number_chosen = utils.parseNumber(number_chosen);
   if (utils.anyIsError(number, number_chosen)) {
@@ -2874,7 +2902,7 @@ exports.PERMUTATIONA = function(number, number_chosen) {
   return Math.pow(number, number_chosen);
 };
 
-exports.PHI = function(x) {
+exports.PHI = function (x) {
   x = utils.parseNumber(x);
   if (x instanceof Error) {
     return error.value;
@@ -2884,20 +2912,20 @@ exports.PHI = function(x) {
 
 exports.POISSON = {};
 
-exports.POISSON.DIST = function(x, mean, cumulative) {
+exports.POISSON.DIST = function (x, mean, cumulative) {
   x = utils.parseNumber(x);
   mean = utils.parseNumber(mean);
   if (utils.anyIsError(x, mean)) {
     return error.value;
   }
-  return (cumulative) ? jStat.poisson.cdf(x, mean) : jStat.poisson.pdf(x, mean);
+  return cumulative ? jStat.poisson.cdf(x, mean) : jStat.poisson.pdf(x, mean);
 };
 
-exports.PROB = function(range, probability, lower, upper) {
+exports.PROB = function (range, probability, lower, upper) {
   if (lower === undefined) {
     return 0;
   }
-  upper = (upper === undefined) ? lower : upper;
+  upper = upper === undefined ? lower : upper;
 
   range = utils.parseNumberArray(utils.flatten(range));
   probability = utils.parseNumberArray(utils.flatten(probability));
@@ -2908,10 +2936,10 @@ exports.PROB = function(range, probability, lower, upper) {
   }
 
   if (lower === upper) {
-    return (range.indexOf(lower) >= 0) ? probability[range.indexOf(lower)] : 0;
+    return range.indexOf(lower) >= 0 ? probability[range.indexOf(lower)] : 0;
   }
 
-  var sorted = range.sort(function(a, b) {
+  var sorted = range.sort(function (a, b) {
     return a - b;
   });
   var n = sorted.length;
@@ -2926,7 +2954,7 @@ exports.PROB = function(range, probability, lower, upper) {
 
 exports.QUARTILE = {};
 
-exports.QUARTILE.EXC = function(range, quart) {
+exports.QUARTILE.EXC = function (range, quart) {
   range = utils.parseNumberArray(utils.flatten(range));
   quart = utils.parseNumber(quart);
   if (utils.anyIsError(range, quart)) {
@@ -2944,7 +2972,7 @@ exports.QUARTILE.EXC = function(range, quart) {
   }
 };
 
-exports.QUARTILE.INC = function(range, quart) {
+exports.QUARTILE.INC = function (range, quart) {
   range = utils.parseNumberArray(utils.flatten(range));
   quart = utils.parseNumber(quart);
   if (utils.anyIsError(range, quart)) {
@@ -2964,7 +2992,7 @@ exports.QUARTILE.INC = function(range, quart) {
 
 exports.RANK = {};
 
-exports.RANK.AVG = function(number, range, order) {
+exports.RANK.AVG = function (number, range, order) {
   number = utils.parseNumber(number);
   range = utils.parseNumberArray(utils.flatten(range));
   if (utils.anyIsError(number, range)) {
@@ -2972,9 +3000,9 @@ exports.RANK.AVG = function(number, range, order) {
   }
   range = utils.flatten(range);
   order = order || false;
-  var sort = (order) ? function(a, b) {
+  var sort = order ? function (a, b) {
     return a - b;
-  } : function(a, b) {
+  } : function (a, b) {
     return b - a;
   };
   range = range.sort(sort);
@@ -2987,26 +3015,26 @@ exports.RANK.AVG = function(number, range, order) {
     }
   }
 
-  return (count > 1) ? (2 * range.indexOf(number) + count + 1) / 2 : range.indexOf(number) + 1;
+  return count > 1 ? (2 * range.indexOf(number) + count + 1) / 2 : range.indexOf(number) + 1;
 };
 
-exports.RANK.EQ = function(number, range, order) {
+exports.RANK.EQ = function (number, range, order) {
   number = utils.parseNumber(number);
   range = utils.parseNumberArray(utils.flatten(range));
   if (utils.anyIsError(number, range)) {
     return error.value;
   }
   order = order || false;
-  var sort = (order) ? function(a, b) {
+  var sort = order ? function (a, b) {
     return a - b;
-  } : function(a, b) {
+  } : function (a, b) {
     return b - a;
   };
   range = range.sort(sort);
   return range.indexOf(number) + 1;
 };
 
-exports.ROW = function(matrix, index) {
+exports.ROW = function (matrix, index) {
   if (arguments.length !== 2) {
     return error.na;
   }
@@ -3015,7 +3043,7 @@ exports.ROW = function(matrix, index) {
     return error.num;
   }
 
-  if (!(matrix instanceof Array) || (typeof index !== 'number')) {
+  if (!(matrix instanceof Array) || typeof index !== 'number') {
     return error.value;
   }
 
@@ -3026,7 +3054,7 @@ exports.ROW = function(matrix, index) {
   return jStat.row(matrix, index);
 };
 
-exports.ROWS = function(matrix) {
+exports.ROWS = function (matrix) {
   if (arguments.length !== 1) {
     return error.na;
   }
@@ -3042,7 +3070,8 @@ exports.ROWS = function(matrix) {
   return jStat.rows(matrix);
 };
 
-exports.RSQ = function(data_x, data_y) { // no need to flatten here, PEARSON will take care of that
+exports.RSQ = function (data_x, data_y) {
+  // no need to flatten here, PEARSON will take care of that
   data_x = utils.parseNumberArray(utils.flatten(data_x));
   data_y = utils.parseNumberArray(utils.flatten(data_y));
   if (utils.anyIsError(data_x, data_y)) {
@@ -3051,7 +3080,7 @@ exports.RSQ = function(data_x, data_y) { // no need to flatten here, PEARSON wil
   return Math.pow(exports.PEARSON(data_x, data_y), 2);
 };
 
-exports.SKEW = function() {
+exports.SKEW = function () {
   var range = utils.parseNumberArray(utils.flatten(arguments));
   if (range instanceof Error) {
     return range;
@@ -3065,7 +3094,7 @@ exports.SKEW = function() {
   return n * sigma / ((n - 1) * (n - 2) * Math.pow(jStat.stdev(range, true), 3));
 };
 
-exports.SKEW.P = function() {
+exports.SKEW.P = function () {
   var range = utils.parseNumberArray(utils.flatten(arguments));
   if (range instanceof Error) {
     return range;
@@ -3083,7 +3112,7 @@ exports.SKEW.P = function() {
   return m3 / Math.pow(m2, 3 / 2);
 };
 
-exports.SLOPE = function(data_y, data_x) {
+exports.SLOPE = function (data_y, data_x) {
   data_y = utils.parseNumberArray(utils.flatten(data_y));
   data_x = utils.parseNumberArray(utils.flatten(data_x));
   if (utils.anyIsError(data_y, data_x)) {
@@ -3101,18 +3130,18 @@ exports.SLOPE = function(data_y, data_x) {
   return num / den;
 };
 
-exports.SMALL = function(range, k) {
+exports.SMALL = function (range, k) {
   range = utils.parseNumberArray(utils.flatten(range));
   k = utils.parseNumber(k);
   if (utils.anyIsError(range, k)) {
     return range;
   }
-  return range.sort(function(a, b) {
+  return range.sort(function (a, b) {
     return a - b;
   })[k - 1];
 };
 
-exports.STANDARDIZE = function(x, mean, sd) {
+exports.STANDARDIZE = function (x, mean, sd) {
   x = utils.parseNumber(x);
   mean = utils.parseNumber(mean);
   sd = utils.parseNumber(sd);
@@ -3124,7 +3153,7 @@ exports.STANDARDIZE = function(x, mean, sd) {
 
 exports.STDEV = {};
 
-exports.STDEV.P = function() {
+exports.STDEV.P = function () {
   var v = exports.VAR.P.apply(this, arguments);
   var result = Math.sqrt(v);
 
@@ -3135,21 +3164,21 @@ exports.STDEV.P = function() {
   return result;
 };
 
-exports.STDEV.S = function() {
+exports.STDEV.S = function () {
   var v = exports.VAR.S.apply(this, arguments);
   var result = Math.sqrt(v);
 
   return result;
 };
 
-exports.STDEVA = function() {
+exports.STDEVA = function () {
   var v = exports.VARA.apply(this, arguments);
   var result = Math.sqrt(v);
 
   return result;
 };
 
-exports.STDEVPA = function() {
+exports.STDEVPA = function () {
   var v = exports.VARPA.apply(this, arguments);
   var result = Math.sqrt(v);
 
@@ -3160,8 +3189,7 @@ exports.STDEVPA = function() {
   return result;
 };
 
-
-exports.STEYX = function(data_y, data_x) {
+exports.STEYX = function (data_y, data_x) {
   data_y = utils.parseNumberArray(utils.flatten(data_y));
   data_x = utils.parseNumberArray(utils.flatten(data_x));
   if (utils.anyIsError(data_y, data_x)) {
@@ -3181,7 +3209,7 @@ exports.STEYX = function(data_y, data_x) {
   return Math.sqrt((lft - num * num / den) / (n - 2));
 };
 
-exports.TRANSPOSE = function(matrix) {
+exports.TRANSPOSE = function (matrix) {
   if (!matrix) {
     return error.na;
   }
@@ -3190,16 +3218,16 @@ exports.TRANSPOSE = function(matrix) {
 
 exports.T = text.T;
 
-exports.T.DIST = function(x, df, cumulative) {
+exports.T.DIST = function (x, df, cumulative) {
   x = utils.parseNumber(x);
   df = utils.parseNumber(df);
   if (utils.anyIsError(x, df)) {
     return error.value;
   }
-  return (cumulative) ? jStat.studentt.cdf(x, df) : jStat.studentt.pdf(x, df);
+  return cumulative ? jStat.studentt.cdf(x, df) : jStat.studentt.pdf(x, df);
 };
 
-exports.T.DIST['2T'] = function(x, df) {
+exports.T.DIST['2T'] = function (x, df) {
   if (arguments.length !== 2) {
     return error.na;
   }
@@ -3208,14 +3236,14 @@ exports.T.DIST['2T'] = function(x, df) {
     return error.num;
   }
 
-  if ((typeof x !== 'number') || (typeof df !== 'number')) {
+  if (typeof x !== 'number' || typeof df !== 'number') {
     return error.value;
   }
 
-  return (1 - jStat.studentt.cdf(x , df)) * 2;
+  return (1 - jStat.studentt.cdf(x, df)) * 2;
 };
 
-exports.T.DIST.RT = function(x, df) {
+exports.T.DIST.RT = function (x, df) {
   if (arguments.length !== 2) {
     return error.na;
   }
@@ -3224,14 +3252,14 @@ exports.T.DIST.RT = function(x, df) {
     return error.num;
   }
 
-  if ((typeof x !== 'number') || (typeof df !== 'number')) {
+  if (typeof x !== 'number' || typeof df !== 'number') {
     return error.value;
   }
 
-  return 1 - jStat.studentt.cdf(x , df);
+  return 1 - jStat.studentt.cdf(x, df);
 };
 
-exports.T.INV = function(probability, df) {
+exports.T.INV = function (probability, df) {
   probability = utils.parseNumber(probability);
   df = utils.parseNumber(df);
   if (utils.anyIsError(probability, df)) {
@@ -3240,7 +3268,7 @@ exports.T.INV = function(probability, df) {
   return jStat.studentt.inv(probability, df);
 };
 
-exports.T.INV['2T'] = function(probability, df) {
+exports.T.INV['2T'] = function (probability, df) {
   probability = utils.parseNumber(probability);
   df = utils.parseNumber(df);
   if (probability <= 0 || probability > 1 || df < 1) {
@@ -3249,12 +3277,12 @@ exports.T.INV['2T'] = function(probability, df) {
   if (utils.anyIsError(probability, df)) {
     return error.value;
   }
-  return Math.abs(jStat.studentt.inv(probability/2, df));
+  return Math.abs(jStat.studentt.inv(probability / 2, df));
 };
 
 // The algorithm can be found here:
 // http://www.chem.uoa.gr/applets/AppletTtest/Appl_Ttest2.html
-exports.T.TEST = function(data_x, data_y) {
+exports.T.TEST = function (data_x, data_y) {
   data_x = utils.parseNumberArray(utils.flatten(data_x));
   data_y = utils.parseNumberArray(utils.flatten(data_y));
   if (utils.anyIsError(data_x, data_y)) {
@@ -3274,18 +3302,19 @@ exports.T.TEST = function(data_x, data_y) {
     s_y += Math.pow(data_y[i] - mean_y, 2);
   }
 
-  s_x = s_x / (data_x.length-1);
-  s_y = s_y / (data_y.length-1);
+  s_x = s_x / (data_x.length - 1);
+  s_y = s_y / (data_y.length - 1);
 
-  var t = Math.abs(mean_x - mean_y) / Math.sqrt(s_x/data_x.length + s_y/data_y.length);
+  var t = Math.abs(mean_x - mean_y) / Math.sqrt(s_x / data_x.length + s_y / data_y.length);
 
-  return exports.T.DIST['2T'](t, data_x.length+data_y.length-2);
+  return exports.T.DIST['2T'](t, data_x.length + data_y.length - 2);
 };
 
-exports.TREND = function(data_y, data_x, new_data_x) {
+exports.TREND = function (data_y, data_x, new_data_x) {
+  console.log('TREND function', arguments);
   data_y = utils.parseNumberArray(utils.flatten(data_y));
   data_x = utils.parseNumberArray(utils.flatten(data_x));
-  new_data_x = utils.parseNumberArray(utils.flatten(new_data_x));
+  new_data_x = utils.parseNumberArray(utils.flatten([].concat(new_data_x)));
   if (utils.anyIsError(data_y, data_x, new_data_x)) {
     return error.value;
   }
@@ -3294,28 +3323,28 @@ exports.TREND = function(data_y, data_x, new_data_x) {
   var b = linest[1];
   var result = [];
 
-  new_data_x.forEach(function(x) {
+  new_data_x.forEach(function (x) {
     result.push(m * x + b);
   });
 
-  return result;
+  return result.length === 1 ? result[0] : result; // guessing this is the desired behavior..
 };
 
-exports.TRIMMEAN = function(range, percent) {
+exports.TRIMMEAN = function (range, percent) {
   range = utils.parseNumberArray(utils.flatten(range));
   percent = utils.parseNumber(percent);
   if (utils.anyIsError(range, percent)) {
     return error.value;
   }
   var trim = mathTrig.FLOOR(range.length * percent, 2) / 2;
-  return jStat.mean(utils.initial(utils.rest(range.sort(function(a, b) {
+  return jStat.mean(utils.initial(utils.rest(range.sort(function (a, b) {
     return a - b;
   }), trim), trim));
 };
 
 exports.VAR = {};
 
-exports.VAR.P = function() {
+exports.VAR.P = function () {
   var range = utils.numbers(utils.flatten(arguments));
   var n = range.length;
   var sigma = 0;
@@ -3333,7 +3362,7 @@ exports.VAR.P = function() {
   return result;
 };
 
-exports.VAR.S = function() {
+exports.VAR.S = function () {
   var range = utils.numbers(utils.flatten(arguments));
   var n = range.length;
   var sigma = 0;
@@ -3344,7 +3373,7 @@ exports.VAR.S = function() {
   return sigma / (n - 1);
 };
 
-exports.VARA = function() {
+exports.VARA = function () {
   var range = utils.flatten(arguments);
   var n = range.length;
   var sigma = 0;
@@ -3367,7 +3396,7 @@ exports.VARA = function() {
   return sigma / (count - 1);
 };
 
-exports.VARPA = function() {
+exports.VARPA = function () {
   var range = utils.flatten(arguments);
   var n = range.length;
   var sigma = 0;
@@ -3399,19 +3428,19 @@ exports.VARPA = function() {
 
 exports.WEIBULL = {};
 
-exports.WEIBULL.DIST = function(x, alpha, beta, cumulative) {
+exports.WEIBULL.DIST = function (x, alpha, beta, cumulative) {
   x = utils.parseNumber(x);
   alpha = utils.parseNumber(alpha);
   beta = utils.parseNumber(beta);
   if (utils.anyIsError(x, alpha, beta)) {
     return error.value;
   }
-  return (cumulative) ? 1 - Math.exp(-Math.pow(x / beta, alpha)) : Math.pow(x, alpha - 1) * Math.exp(-Math.pow(x / beta, alpha)) * alpha / Math.pow(beta, alpha);
+  return cumulative ? 1 - Math.exp(-Math.pow(x / beta, alpha)) : Math.pow(x, alpha - 1) * Math.exp(-Math.pow(x / beta, alpha)) * alpha / Math.pow(beta, alpha);
 };
 
 exports.Z = {};
 
-exports.Z.TEST = function(range, x, sd) {
+exports.Z.TEST = function (range, x, sd) {
   range = utils.parseNumberArray(utils.flatten(range));
   x = utils.parseNumber(x);
   if (utils.anyIsError(range, x)) {
@@ -3423,7 +3452,6 @@ exports.Z.TEST = function(range, x, sd) {
   return 1 - exports.NORM.S.DIST((exports.AVERAGE(range) - x) / (sd / Math.sqrt(n)), true);
 };
 
-
 /***/ }),
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -3433,16 +3461,16 @@ var error = __webpack_require__(0);
 var numbro = __webpack_require__(9);
 
 //TODO
-exports.ASC = function() {
+exports.ASC = function () {
   throw new Error('ASC is not implemented');
 };
 
 //TODO
-exports.BAHTTEXT = function() {
+exports.BAHTTEXT = function () {
   throw new Error('BAHTTEXT is not implemented');
 };
 
-exports.CHAR = function(number) {
+exports.CHAR = function (number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -3450,13 +3478,13 @@ exports.CHAR = function(number) {
   return String.fromCharCode(number);
 };
 
-exports.CLEAN = function(text) {
+exports.CLEAN = function (text) {
   text = text || '';
   var re = /[\0-\x1F]/g;
   return text.replace(re, "");
 };
 
-exports.CODE = function(text) {
+exports.CODE = function (text) {
   text = text || '';
   var result = text.charCodeAt(0);
 
@@ -3466,7 +3494,7 @@ exports.CODE = function(text) {
   return result;
 };
 
-exports.CONCATENATE = function() {
+exports.CONCATENATE = function () {
   var args = utils.flatten(arguments);
 
   var trueFound = 0;
@@ -3483,12 +3511,12 @@ exports.CONCATENATE = function() {
 };
 
 //TODO
-exports.DBCS = function() {
+exports.DBCS = function () {
   throw new Error('DBCS is not implemented');
 };
 
-exports.DOLLAR = function(number, decimals) {
-  decimals = (decimals === undefined) ? 2 : decimals;
+exports.DOLLAR = function (number, decimals) {
+  decimals = decimals === undefined ? 2 : decimals;
 
   number = utils.parseNumber(number);
   decimals = utils.parseNumber(decimals);
@@ -3505,24 +3533,24 @@ exports.DOLLAR = function(number, decimals) {
   return numbro(number).format(format);
 };
 
-exports.EXACT = function(text1, text2) {
+exports.EXACT = function (text1, text2) {
   if (arguments.length !== 2) {
     return error.na;
   }
   return text1 === text2;
 };
 
-exports.FIND = function(find_text, within_text, position) {
+exports.FIND = function (find_text, within_text, position) {
   if (arguments.length < 2) {
     return error.na;
   }
-  position = (position === undefined) ? 0 : position;
+  position = position === undefined ? 0 : position;
   return within_text ? within_text.indexOf(find_text, position - 1) + 1 : null;
 };
 
-exports.FIXED = function(number, decimals, no_commas) {
-  decimals = (decimals === undefined) ? 2 : decimals;
-  no_commas = (no_commas === undefined) ? false : no_commas;
+exports.FIXED = function (number, decimals, no_commas) {
+  decimals = decimals === undefined ? 2 : decimals;
+  no_commas = no_commas === undefined ? false : no_commas;
 
   number = utils.parseNumber(number);
   decimals = utils.parseNumber(decimals);
@@ -3548,7 +3576,7 @@ exports.HTML2TEXT = function (value) {
         if (result !== '') {
           result += '\n';
         }
-        result += (line.replace(/<(?:.|\n)*?>/gm, ''));
+        result += line.replace(/<(?:.|\n)*?>/gm, '');
       });
     } else {
       result = value.replace(/<(?:.|\n)*?>/gm, '');
@@ -3558,8 +3586,8 @@ exports.HTML2TEXT = function (value) {
   return result;
 };
 
-exports.LEFT = function(text, number) {
-  number = (number === undefined) ? 1 : number;
+exports.LEFT = function (text, number) {
+  number = number === undefined ? 1 : number;
   number = utils.parseNumber(number);
   if (number instanceof Error || typeof text !== 'string') {
     return error.value;
@@ -3567,7 +3595,7 @@ exports.LEFT = function(text, number) {
   return text ? text.substring(0, number) : null;
 };
 
-exports.LEN = function(text) {
+exports.LEN = function (text) {
   if (arguments.length === 0) {
     return error.error;
   }
@@ -3583,14 +3611,14 @@ exports.LEN = function(text) {
   return error.value;
 };
 
-exports.LOWER = function(text) {
+exports.LOWER = function (text) {
   if (typeof text !== 'string') {
     return error.value;
   }
   return text ? text.toLowerCase() : text;
 };
 
-exports.MID = function(text, start, number) {
+exports.MID = function (text, start, number) {
   start = utils.parseNumber(start);
   number = utils.parseNumber(number);
   if (utils.anyIsError(start, number) || typeof text !== 'string') {
@@ -3604,18 +3632,18 @@ exports.MID = function(text, start, number) {
 };
 
 // TODO
-exports.NUMBERVALUE = function (text, decimal_separator, group_separator)  {
-  decimal_separator = (typeof decimal_separator === 'undefined') ? '.' : decimal_separator;
-  group_separator = (typeof group_separator === 'undefined') ? ',' : group_separator;
+exports.NUMBERVALUE = function (text, decimal_separator, group_separator) {
+  decimal_separator = typeof decimal_separator === 'undefined' ? '.' : decimal_separator;
+  group_separator = typeof group_separator === 'undefined' ? ',' : group_separator;
   return Number(text.replace(decimal_separator, '.').replace(group_separator, ''));
 };
 
 // TODO
-exports.PRONETIC = function() {
+exports.PRONETIC = function () {
   throw new Error('PRONETIC is not implemented');
 };
 
-exports.PROPER = function(text) {
+exports.PROPER = function (text) {
   if (text === undefined || text.length === 0) {
     return error.value;
   }
@@ -3632,7 +3660,7 @@ exports.PROPER = function(text) {
     text = '' + text;
   }
 
-  return text.replace(/\w\S*/g, function(txt) {
+  return text.replace(/\w\S*/g, function (txt) {
     return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
   });
 };
@@ -3642,7 +3670,7 @@ exports.REGEXEXTRACT = function (text, regular_expression) {
     return error.na;
   }
   var match = text.match(new RegExp(regular_expression));
-  return match ? (match[match.length > 1 ? match.length - 1 : 0]) : null;
+  return match ? match[match.length > 1 ? match.length - 1 : 0] : null;
 };
 
 exports.REGEXMATCH = function (text, regular_expression, full) {
@@ -3660,18 +3688,16 @@ exports.REGEXREPLACE = function (text, regular_expression, replacement) {
   return text.replace(new RegExp(regular_expression), replacement);
 };
 
-exports.REPLACE = function(text, position, length, new_text) {
+exports.REPLACE = function (text, position, length, new_text) {
   position = utils.parseNumber(position);
   length = utils.parseNumber(length);
-  if (utils.anyIsError(position, length) ||
-    typeof text !== 'string' ||
-    typeof new_text !== 'string') {
+  if (utils.anyIsError(position, length) || typeof text !== 'string' || typeof new_text !== 'string') {
     return error.value;
   }
   return text.substr(0, position - 1) + new_text + text.substr(position - 1 + length);
 };
 
-exports.REPT = function(text, number) {
+exports.REPT = function (text, number) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -3679,8 +3705,8 @@ exports.REPT = function(text, number) {
   return new Array(number + 1).join(text);
 };
 
-exports.RIGHT = function(text, number) {
-  number = (number === undefined) ? 1 : number;
+exports.RIGHT = function (text, number) {
+  number = number === undefined ? 1 : number;
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -3688,21 +3714,21 @@ exports.RIGHT = function(text, number) {
   return text ? text.substring(text.length - number) : error.na;
 };
 
-exports.SEARCH = function(find_text, within_text, position) {
+exports.SEARCH = function (find_text, within_text, position) {
   var foundAt;
   if (typeof find_text !== 'string' || typeof within_text !== 'string') {
     return error.value;
   }
-  position = (position === undefined) ? 0 : position;
-  foundAt = within_text.toLowerCase().indexOf(find_text.toLowerCase(), position - 1)+1;
-  return (foundAt === 0)?error.value:foundAt;
+  position = position === undefined ? 0 : position;
+  foundAt = within_text.toLowerCase().indexOf(find_text.toLowerCase(), position - 1) + 1;
+  return foundAt === 0 ? error.value : foundAt;
 };
 
 exports.SPLIT = function (text, separator) {
   return text.split(separator);
 };
 
-exports.SUBSTITUTE = function(text, old_text, new_text, occurrence) {
+exports.SUBSTITUTE = function (text, old_text, new_text, occurrence) {
   if (arguments.length < 2) {
     return error.na;
   }
@@ -3723,12 +3749,12 @@ exports.SUBSTITUTE = function(text, old_text, new_text, occurrence) {
   }
 };
 
-exports.T = function(value) {
-  return (typeof value === "string") ? value : '';
+exports.T = function (value) {
+  return typeof value === "string" ? value : '';
 };
 
 // TODO incomplete implementation
-exports.TEXT = function(value, format) {
+exports.TEXT = function (value, format) {
   value = utils.parseNumber(value);
   if (utils.anyIsError(value)) {
     return error.na;
@@ -3737,7 +3763,7 @@ exports.TEXT = function(value, format) {
   return numbro(value).format(format);
 };
 
-exports.TRIM = function(text) {
+exports.TRIM = function (text) {
   if (typeof text !== 'string') {
     return error.value;
   }
@@ -3748,14 +3774,14 @@ exports.UNICHAR = exports.CHAR;
 
 exports.UNICODE = exports.CODE;
 
-exports.UPPER = function(text) {
+exports.UPPER = function (text) {
   if (typeof text !== 'string') {
     return error.value;
   }
   return text.toUpperCase();
 };
 
-exports.VALUE = function(text) {
+exports.VALUE = function (text) {
   if (typeof text !== 'string') {
     return error.value;
   }
@@ -3764,7 +3790,6 @@ exports.VALUE = function(text) {
   return result === void 0 ? 0 : result;
 };
 
-
 /***/ }),
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -3772,86 +3797,94 @@ exports.VALUE = function(text) {
 var error = __webpack_require__(0);
 
 // TODO
-exports.CELL = function() {
+exports.CELL = function () {
   throw new Error('CELL is not implemented');
 };
 
 exports.ERROR = {};
-exports.ERROR.TYPE = function(error_val) {
+exports.ERROR.TYPE = function (error_val) {
   switch (error_val) {
-    case error.nil: return 1;
-    case error.div0: return 2;
-    case error.value: return 3;
-    case error.ref: return 4;
-    case error.name: return 5;
-    case error.num: return 6;
-    case error.na: return 7;
-    case error.data: return 8;
+    case error.nil:
+      return 1;
+    case error.div0:
+      return 2;
+    case error.value:
+      return 3;
+    case error.ref:
+      return 4;
+    case error.name:
+      return 5;
+    case error.num:
+      return 6;
+    case error.na:
+      return 7;
+    case error.data:
+      return 8;
   }
   return error.na;
 };
 
 // TODO
-exports.INFO = function() {
+exports.INFO = function () {
   throw new Error('INFO is not implemented');
 };
 
-exports.ISBLANK = function(value) {
+exports.ISBLANK = function (value) {
   return value === null;
 };
 
 exports.ISBINARY = function (number) {
-  return (/^[01]{1,10}$/).test(number);
+  return (/^[01]{1,10}$/.test(number)
+  );
 };
 
-exports.ISERR = function(value) {
-  return ([error.value, error.ref, error.div0, error.num, error.name, error.nil]).indexOf(value) >= 0 ||
-    (typeof value === 'number' && (isNaN(value) || !isFinite(value)));
+exports.ISERR = function (value) {
+  return [error.value, error.ref, error.div0, error.num, error.name, error.nil].indexOf(value) >= 0 || typeof value === 'number' && (isNaN(value) || !isFinite(value));
 };
 
-exports.ISERROR = function(value) {
+exports.ISERROR = function (value) {
   return exports.ISERR(value) || value === error.na;
 };
 
-exports.ISEVEN = function(number) {
-  return (Math.floor(Math.abs(number)) & 1) ? false : true;
+exports.ISEVEN = function (number) {
+  return Math.floor(Math.abs(number)) & 1 ? false : true;
 };
 
 // TODO
-exports.ISFORMULA = function() {
+exports.ISFORMULA = function () {
   throw new Error('ISFORMULA is not implemented');
 };
 
-exports.ISLOGICAL = function(value) {
+exports.ISLOGICAL = function (value) {
   return value === true || value === false;
 };
 
-exports.ISNA = function(value) {
+exports.ISNA = function (value) {
   return value === error.na;
 };
 
-exports.ISNONTEXT = function(value) {
-  return typeof(value) !== 'string';
+exports.ISNONTEXT = function (value) {
+  return typeof value !== 'string';
 };
 
-exports.ISNUMBER = function(value) {
-  return typeof(value) === 'number' && !isNaN(value) && isFinite(value);
+exports.ISNUMBER = function (value) {
+  return typeof value === 'number' && !isNaN(value) && isFinite(value);
 };
 
-exports.ISODD = function(number) {
-  return (Math.floor(Math.abs(number)) & 1) ? true : false;
+exports.ISODD = function (number) {
+  return Math.floor(Math.abs(number)) & 1 ? true : false;
 };
 
 // TODO
-exports.ISREF = function() {
+exports.ISREF = function () {
   throw new Error('ISREF is not implemented');
 };
 
-exports.ISTEXT = function(value) {
-  return typeof(value) === 'string';
+exports.ISTEXT = function (value) {
+  return typeof value === 'string';
 };
 
-exports.N = function(value) {
+exports.N = function (value) {
   if (this.ISNUMBER(value)) {
     return value;
   }
@@ -3870,22 +3903,21 @@ exports.N = function(value) {
   return 0;
 };
 
-exports.NA = function() {
+exports.NA = function () {
   return error.na;
 };
 
-
 // TODO
-exports.SHEET = function() {
+exports.SHEET = function () {
   throw new Error('SHEET is not implemented');
 };
 
 // TODO
-exports.SHEETS = function() {
+exports.SHEETS = function () {
   throw new Error('SHEETS is not implemented');
 };
 
-exports.TYPE = function(value) {
+exports.TYPE = function (value) {
   if (this.ISNUMBER(value)) {
     return 1;
   }
@@ -3903,7 +3935,6 @@ exports.TYPE = function(value) {
   }
 };
 
-
 /***/ }),
 /* 8 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -3912,68 +3943,11 @@ var error = __webpack_require__(0);
 var utils = __webpack_require__(1);
 
 var d1900 = new Date(1900, 0, 1);
-var WEEK_STARTS = [
-  undefined,
-  0,
-  1,
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  1,
-  2,
-  3,
-  4,
-  5,
-  6,
-  0
-];
-var WEEK_TYPES = [
-  [],
-  [1, 2, 3, 4, 5, 6, 7],
-  [7, 1, 2, 3, 4, 5, 6],
-  [6, 0, 1, 2, 3, 4, 5],
-  [],
-  [],
-  [],
-  [],
-  [],
-  [],
-  [],
-  [7, 1, 2, 3, 4, 5, 6],
-  [6, 7, 1, 2, 3, 4, 5],
-  [5, 6, 7, 1, 2, 3, 4],
-  [4, 5, 6, 7, 1, 2, 3],
-  [3, 4, 5, 6, 7, 1, 2],
-  [2, 3, 4, 5, 6, 7, 1],
-  [1, 2, 3, 4, 5, 6, 7]
-];
-var WEEKEND_TYPES = [
-  [],
-  [6, 0],
-  [0, 1],
-  [1, 2],
-  [2, 3],
-  [3, 4],
-  [4, 5],
-  [5, 6],
-  undefined,
-  undefined,
-  undefined, [0, 0],
-  [1, 1],
-  [2, 2],
-  [3, 3],
-  [4, 4],
-  [5, 5],
-  [6, 6]
-];
+var WEEK_STARTS = [undefined, 0, 1, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 1, 2, 3, 4, 5, 6, 0];
+var WEEK_TYPES = [[], [1, 2, 3, 4, 5, 6, 7], [7, 1, 2, 3, 4, 5, 6], [6, 0, 1, 2, 3, 4, 5], [], [], [], [], [], [], [], [7, 1, 2, 3, 4, 5, 6], [6, 7, 1, 2, 3, 4, 5], [5, 6, 7, 1, 2, 3, 4], [4, 5, 6, 7, 1, 2, 3], [3, 4, 5, 6, 7, 1, 2], [2, 3, 4, 5, 6, 7, 1], [1, 2, 3, 4, 5, 6, 7]];
+var WEEKEND_TYPES = [[], [6, 0], [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], undefined, undefined, undefined, [0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6]];
 
-exports.DATE = function(year, month, day) {
+exports.DATE = function (year, month, day) {
   var result;
 
   year = utils.parseNumber(year);
@@ -3982,10 +3956,8 @@ exports.DATE = function(year, month, day) {
 
   if (utils.anyIsError(year, month, day)) {
     result = error.value;
-
   } else if (year < 0 || month < 0 || day < 0) {
     result = error.num;
-
   } else {
     result = new Date(year, month - 1, day);
   }
@@ -3993,7 +3965,7 @@ exports.DATE = function(year, month, day) {
   return result;
 };
 
-exports.DATEVALUE = function(date_text) {
+exports.DATEVALUE = function (date_text) {
   if (typeof date_text !== 'string') {
     return error.value;
   }
@@ -4009,7 +3981,7 @@ exports.DATEVALUE = function(date_text) {
   return (date - d1900) / 86400000 + 2;
 };
 
-exports.DAY = function(serial_number) {
+exports.DAY = function (serial_number) {
   var date = utils.parseDate(serial_number);
   if (date instanceof Error) {
     return date;
@@ -4018,7 +3990,7 @@ exports.DAY = function(serial_number) {
   return date.getDate();
 };
 
-exports.DAYS = function(end_date, start_date) {
+exports.DAYS = function (end_date, start_date) {
   end_date = utils.parseDate(end_date);
   start_date = utils.parseDate(start_date);
 
@@ -4032,7 +4004,7 @@ exports.DAYS = function(end_date, start_date) {
   return serial(end_date) - serial(start_date);
 };
 
-exports.DAYS360 = function(start_date, end_date, method) {
+exports.DAYS360 = function (start_date, end_date, method) {
   method = utils.parseBool(method);
   start_date = utils.parseDate(start_date);
   end_date = utils.parseDate(end_date);
@@ -4069,11 +4041,10 @@ exports.DAYS360 = function(start_date, end_date, method) {
     }
   }
 
-  return 360 * (end_date.getFullYear() - start_date.getFullYear()) +
-    30 * (em - sm) + (ed - sd);
+  return 360 * (end_date.getFullYear() - start_date.getFullYear()) + 30 * (em - sm) + (ed - sd);
 };
 
-exports.EDATE = function(start_date, months) {
+exports.EDATE = function (start_date, months) {
   start_date = utils.parseDate(start_date);
 
   if (start_date instanceof Error) {
@@ -4088,7 +4059,7 @@ exports.EDATE = function(start_date, months) {
   return serial(start_date);
 };
 
-exports.EOMONTH = function(start_date, months) {
+exports.EOMONTH = function (start_date, months) {
   start_date = utils.parseDate(start_date);
 
   if (start_date instanceof Error) {
@@ -4102,7 +4073,7 @@ exports.EOMONTH = function(start_date, months) {
   return serial(new Date(start_date.getFullYear(), start_date.getMonth() + months + 1, 0));
 };
 
-exports.HOUR = function(serial_number) {
+exports.HOUR = function (serial_number) {
   serial_number = utils.parseDate(serial_number);
 
   if (serial_number instanceof Error) {
@@ -4119,30 +4090,30 @@ exports.INTERVAL = function (second) {
     second = parseInt(second, 10);
   }
 
-  var year  = Math.floor(second/946080000);
-  second    = second%946080000;
-  var month = Math.floor(second/2592000);
-  second    = second%2592000;
-  var day   = Math.floor(second/86400);
-  second    = second%86400;
+  var year = Math.floor(second / 946080000);
+  second = second % 946080000;
+  var month = Math.floor(second / 2592000);
+  second = second % 2592000;
+  var day = Math.floor(second / 86400);
+  second = second % 86400;
 
-  var hour  = Math.floor(second/3600);
-  second    = second%3600;
-  var min   = Math.floor(second/60);
-  second    = second%60;
-  var sec   = second;
+  var hour = Math.floor(second / 3600);
+  second = second % 3600;
+  var min = Math.floor(second / 60);
+  second = second % 60;
+  var sec = second;
 
-  year  = (year  > 0) ? year  + 'Y' : '';
-  month = (month > 0) ? month + 'M' : '';
-  day   = (day   > 0) ? day   + 'D' : '';
-  hour  = (hour  > 0) ? hour  + 'H' : '';
-  min   = (min   > 0) ? min   + 'M' : '';
-  sec   = (sec   > 0) ? sec   + 'S' : '';
+  year = year > 0 ? year + 'Y' : '';
+  month = month > 0 ? month + 'M' : '';
+  day = day > 0 ? day + 'D' : '';
+  hour = hour > 0 ? hour + 'H' : '';
+  min = min > 0 ? min + 'M' : '';
+  sec = sec > 0 ? sec + 'S' : '';
 
   return 'P' + year + month + day + 'T' + hour + min + sec;
 };
 
-exports.ISOWEEKNUM = function(date) {
+exports.ISOWEEKNUM = function (date) {
   date = utils.parseDate(date);
 
   if (date instanceof Error) {
@@ -4153,10 +4124,10 @@ exports.ISOWEEKNUM = function(date) {
   date.setDate(date.getDate() + 4 - (date.getDay() || 7));
   var yearStart = new Date(date.getFullYear(), 0, 1);
 
-  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
 };
 
-exports.MINUTE = function(serial_number) {
+exports.MINUTE = function (serial_number) {
   serial_number = utils.parseDate(serial_number);
 
   if (serial_number instanceof Error) {
@@ -4166,7 +4137,7 @@ exports.MINUTE = function(serial_number) {
   return serial_number.getMinutes();
 };
 
-exports.MONTH = function(serial_number) {
+exports.MONTH = function (serial_number) {
   serial_number = utils.parseDate(serial_number);
 
   if (serial_number instanceof Error) {
@@ -4176,11 +4147,11 @@ exports.MONTH = function(serial_number) {
   return serial_number.getMonth() + 1;
 };
 
-exports.NETWORKDAYS = function(start_date, end_date, holidays) {
+exports.NETWORKDAYS = function (start_date, end_date, holidays) {
   return this.NETWORKDAYS.INTL(start_date, end_date, 1, holidays);
 };
 
-exports.NETWORKDAYS.INTL = function(start_date, end_date, weekend, holidays) {
+exports.NETWORKDAYS.INTL = function (start_date, end_date, weekend, holidays) {
   start_date = utils.parseDate(start_date);
 
   if (start_date instanceof Error) {
@@ -4216,16 +4187,14 @@ exports.NETWORKDAYS.INTL = function(start_date, end_date, weekend, holidays) {
   var total = days;
   var day = start_date;
   for (i = 0; i < days; i++) {
-    var d = (new Date().getTimezoneOffset() > 0) ? day.getUTCDay() : day.getDay();
+    var d = new Date().getTimezoneOffset() > 0 ? day.getUTCDay() : day.getDay();
     var dec = false;
     if (d === weekend[0] || d === weekend[1]) {
       dec = true;
     }
     for (var j = 0; j < holidays.length; j++) {
       var holiday = holidays[j];
-      if (holiday.getDate() === day.getDate() &&
-        holiday.getMonth() === day.getMonth() &&
-        holiday.getFullYear() === day.getFullYear()) {
+      if (holiday.getDate() === day.getDate() && holiday.getMonth() === day.getMonth() && holiday.getFullYear() === day.getFullYear()) {
         dec = true;
         break;
       }
@@ -4239,11 +4208,11 @@ exports.NETWORKDAYS.INTL = function(start_date, end_date, weekend, holidays) {
   return total;
 };
 
-exports.NOW = function() {
+exports.NOW = function () {
   return new Date();
 };
 
-exports.SECOND = function(serial_number) {
+exports.SECOND = function (serial_number) {
   serial_number = utils.parseDate(serial_number);
   if (serial_number instanceof Error) {
     return serial_number;
@@ -4252,7 +4221,7 @@ exports.SECOND = function(serial_number) {
   return serial_number.getSeconds();
 };
 
-exports.TIME = function(hour, minute, second) {
+exports.TIME = function (hour, minute, second) {
   hour = utils.parseNumber(hour);
   minute = utils.parseNumber(minute);
   second = utils.parseNumber(second);
@@ -4266,7 +4235,7 @@ exports.TIME = function(hour, minute, second) {
   return (3600 * hour + 60 * minute + second) / 86400;
 };
 
-exports.TIMEVALUE = function(time_text) {
+exports.TIMEVALUE = function (time_text) {
   time_text = utils.parseDate(time_text);
 
   if (time_text instanceof Error) {
@@ -4276,11 +4245,11 @@ exports.TIMEVALUE = function(time_text) {
   return (3600 * time_text.getHours() + 60 * time_text.getMinutes() + time_text.getSeconds()) / 86400;
 };
 
-exports.TODAY = function() {
+exports.TODAY = function () {
   return new Date();
 };
 
-exports.WEEKDAY = function(serial_number, return_type) {
+exports.WEEKDAY = function (serial_number, return_type) {
   serial_number = utils.parseDate(serial_number);
   if (serial_number instanceof Error) {
     return serial_number;
@@ -4293,7 +4262,7 @@ exports.WEEKDAY = function(serial_number, return_type) {
   return WEEK_TYPES[return_type][day];
 };
 
-exports.WEEKNUM = function(serial_number, return_type) {
+exports.WEEKNUM = function (serial_number, return_type) {
   serial_number = utils.parseDate(serial_number);
   if (serial_number instanceof Error) {
     return serial_number;
@@ -4309,14 +4278,14 @@ exports.WEEKNUM = function(serial_number, return_type) {
   var inc = jan.getDay() < week_start ? 1 : 0;
   jan -= Math.abs(jan.getDay() - week_start) * 24 * 60 * 60 * 1000;
 
-  return Math.floor(((serial_number - jan) / (1000 * 60 * 60 * 24)) / 7 + 1) + inc;
+  return Math.floor((serial_number - jan) / (1000 * 60 * 60 * 24) / 7 + 1) + inc;
 };
 
-exports.WORKDAY = function(start_date, days, holidays) {
+exports.WORKDAY = function (start_date, days, holidays) {
   return this.WORKDAY.INTL(start_date, days, 1, holidays);
 };
 
-exports.WORKDAY.INTL = function(start_date, days, weekend, holidays) {
+exports.WORKDAY.INTL = function (start_date, days, weekend, holidays) {
   start_date = utils.parseDate(start_date);
   if (start_date instanceof Error) {
     return start_date;
@@ -4357,9 +4326,7 @@ exports.WORKDAY.INTL = function(start_date, days, weekend, holidays) {
     }
     for (var j = 0; j < holidays.length; j++) {
       var holiday = holidays[j];
-      if (holiday.getDate() === start_date.getDate() &&
-        holiday.getMonth() === start_date.getMonth() &&
-        holiday.getFullYear() === start_date.getFullYear()) {
+      if (holiday.getDate() === start_date.getDate() && holiday.getMonth() === start_date.getMonth() && holiday.getFullYear() === start_date.getFullYear()) {
         d--;
         break;
       }
@@ -4370,7 +4337,7 @@ exports.WORKDAY.INTL = function(start_date, days, weekend, holidays) {
   return start_date;
 };
 
-exports.YEAR = function(serial_number) {
+exports.YEAR = function (serial_number) {
   serial_number = utils.parseDate(serial_number);
 
   if (serial_number instanceof Error) {
@@ -4389,7 +4356,7 @@ function daysBetween(start_date, end_date) {
   return Math.ceil((end_date - start_date) / 1000 / 60 / 60 / 24);
 }
 
-exports.YEARFRAC = function(start_date, end_date, basis) {
+exports.YEARFRAC = function (start_date, end_date, basis) {
   start_date = utils.parseDate(start_date);
   if (start_date instanceof Error) {
     return start_date;
@@ -4418,10 +4385,10 @@ exports.YEARFRAC = function(start_date, end_date, basis) {
       } else if (sd === 30 && ed === 31) {
         ed = 30;
       }
-      return ((ed + em * 30 + ey * 360) - (sd + sm * 30 + sy * 360)) / 360;
+      return (ed + em * 30 + ey * 360 - (sd + sm * 30 + sy * 360)) / 360;
     case 1:
       // Actual/actual
-      var feb29Between = function(date1, date2) {
+      var feb29Between = function (date1, date2) {
         var year1 = date1.getFullYear();
         var mar1year1 = new Date(year1, 2, 1);
         if (isLeapYear(year1) && date1 < mar1year1 && date2 >= mar1year1) {
@@ -4429,18 +4396,16 @@ exports.YEARFRAC = function(start_date, end_date, basis) {
         }
         var year2 = date2.getFullYear();
         var mar1year2 = new Date(year2, 2, 1);
-        return (isLeapYear(year2) && date2 >= mar1year2 && date1 < mar1year2);
+        return isLeapYear(year2) && date2 >= mar1year2 && date1 < mar1year2;
       };
       var ylength = 365;
-      if (sy === ey || ((sy + 1) === ey) && ((sm > em) || ((sm === em) && (sd >= ed)))) {
-        if ((sy === ey && isLeapYear(sy)) ||
-          feb29Between(start_date, end_date) ||
-          (em === 1 && ed === 29)) {
+      if (sy === ey || sy + 1 === ey && (sm > em || sm === em && sd >= ed)) {
+        if (sy === ey && isLeapYear(sy) || feb29Between(start_date, end_date) || em === 1 && ed === 29) {
           ylength = 366;
         }
         return daysBetween(start_date, end_date) / ylength;
       }
-      var years = (ey - sy) + 1;
+      var years = ey - sy + 1;
       var days = (new Date(ey + 1, 0, 1) - new Date(sy, 0, 1)) / 1000 / 60 / 60 / 24;
       var average = days / years;
       return daysBetween(start_date, end_date) / average;
@@ -4452,16 +4417,15 @@ exports.YEARFRAC = function(start_date, end_date, basis) {
       return daysBetween(start_date, end_date) / 365;
     case 4:
       // European 30/360
-      return ((ed + em * 30 + ey * 360) - (sd + sm * 30 + sy * 360)) / 360;
+      return (ed + em * 30 + ey * 360 - (sd + sm * 30 + sy * 360)) / 360;
   }
 };
 
 function serial(date) {
-  var addOn = (date > -2203891200000) ? 2 : 1;
+  var addOn = date > -2203891200000 ? 2 : 1;
 
   return (date - d1900) / 86400000 + addOn;
 }
-
 
 /***/ }),
 /* 9 */
@@ -9251,6 +9215,17 @@ jStat.extend({
     return jStat.map(arr, function(value) { return value * arg; });
   },
 
+  outer:function(A,B){
+    /* outer([1,2,3],[4,5,6])
+    ===
+    [[1],[2],[3]] times [[4,5,6]]
+    ->
+    [[4,5,6],[8,10,12],[12,15,18]]
+    */
+    return jStat.multiply(A.map(function(t){return [t]}),[B]);
+  },
+
+
   // outer([1,2,3],[4,5,6])
   // ===
   // [[1],[2],[3]] times [[4,5,6]]
@@ -10638,10 +10613,8 @@ jStat.models = (function(){
     var model = ols(endog,exog);
     var ttest = t_test(model);
     var ftest = F_test(model);
-    // Provide the Wherry / Ezekiel / McNemar / Cohen Adjusted R^2
-    // Which matches the 'adjusted R^2' provided by R's lm package
     var adjust_R2 =
-        1 - (1 - model.R2) * ((model.nobs - 1) / (model.df_resid));
+        1 - (1 - model.rsquared) * ((model.nobs - 1) / (model.df_resid));
     model.t = ttest;
     model.f = ftest;
     model.adjust_R2 = adjust_R2;
@@ -10669,12 +10642,14 @@ exports.UNIQUE = function () {
   var result = [];
   for (var i = 0; i < arguments.length; ++i) {
     var hasElement = false;
-    var element    = arguments[i];
+    var element = arguments[i];
 
     // Check if we've already seen this element.
     for (var j = 0; j < result.length; ++j) {
       hasElement = result[j] === element;
-      if (hasElement) { break; }
+      if (hasElement) {
+        break;
+      }
     }
 
     // If we did not find it, add it to the result.
@@ -10689,6 +10664,32 @@ exports.FLATTEN = utils.flatten;
 
 exports.ARGS2ARRAY = function () {
   return Array.prototype.slice.call(arguments, 0);
+};
+
+/**
+ * @description
+ * @param {*[][]} matrix
+ * @param {number} rowIndex - starts with index 1
+ * @param {number} columnIndex - starts with index 1
+ **/
+exports.INDEX = function (matrix, rowIndex, columnIndex = 1) {
+  if (rowIndex instanceof Error) {
+    return error.value;
+  }
+  try {
+    if (rowIndex > matrix.length) {
+      return error.ref;
+    }
+    const row = matrix[rowIndex - 1];
+    if (columnIndex > row.length) {
+      return error.ref;
+    }
+    return row[columnIndex - 1];
+  } catch (e) {
+    const reason = new Error(`unable to get INDEX. `);
+    reason.stack += `\n\nCaused By: \n\n ${e.stack}`;
+    throw reason;
+  }
 };
 
 exports.REFERENCE = function (context, reference) {
@@ -10727,7 +10728,6 @@ exports.NUMERAL = function (number, format) {
   return numbro(number).format(format);
 };
 
-
 /***/ }),
 /* 13 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -10739,10 +10739,11 @@ var utils = __webpack_require__(1);
 var bessel = __webpack_require__(28);
 
 function isValidBinaryNumber(number) {
-  return (/^[01]{1,10}$/).test(number);
+  return (/^[01]{1,10}$/.test(number)
+  );
 }
 
-exports.BESSELI = function(x, n) {
+exports.BESSELI = function (x, n) {
   x = utils.parseNumber(x);
   n = utils.parseNumber(n);
   if (utils.anyIsError(x, n)) {
@@ -10752,7 +10753,7 @@ exports.BESSELI = function(x, n) {
   return bessel.besseli(x, n);
 };
 
-exports.BESSELJ = function(x, n) {
+exports.BESSELJ = function (x, n) {
   x = utils.parseNumber(x);
   n = utils.parseNumber(n);
   if (utils.anyIsError(x, n)) {
@@ -10762,7 +10763,7 @@ exports.BESSELJ = function(x, n) {
   return bessel.besselj(x, n);
 };
 
-exports.BESSELK = function(x, n) {
+exports.BESSELK = function (x, n) {
   x = utils.parseNumber(x);
   n = utils.parseNumber(n);
   if (utils.anyIsError(x, n)) {
@@ -10772,7 +10773,7 @@ exports.BESSELK = function(x, n) {
   return bessel.besselk(x, n);
 };
 
-exports.BESSELY = function(x, n) {
+exports.BESSELY = function (x, n) {
   x = utils.parseNumber(x);
   n = utils.parseNumber(n);
   if (utils.anyIsError(x, n)) {
@@ -10782,7 +10783,7 @@ exports.BESSELY = function(x, n) {
   return bessel.bessely(x, n);
 };
 
-exports.BIN2DEC = function(number) {
+exports.BIN2DEC = function (number) {
   // Return error if number is not binary or contains more than 10 characters (10 digits)
   if (!isValidBinaryNumber(number)) {
     return error.num;
@@ -10800,8 +10801,7 @@ exports.BIN2DEC = function(number) {
   }
 };
 
-
-exports.BIN2HEX = function(number, places) {
+exports.BIN2HEX = function (number, places) {
   // Return error if number is not binary or contains more than 10 characters (10 digits)
   if (!isValidBinaryNumber(number)) {
     return error.num;
@@ -10834,11 +10834,11 @@ exports.BIN2HEX = function(number, places) {
     places = Math.floor(places);
 
     // Pad return value with leading 0s (zeros) if necessary (using Underscore.string)
-    return (places >= result.length) ? text.REPT('0', places - result.length) + result : error.num;
+    return places >= result.length ? text.REPT('0', places - result.length) + result : error.num;
   }
 };
 
-exports.BIN2OCT = function(number, places) {
+exports.BIN2OCT = function (number, places) {
   // Return error if number is not binary or contains more than 10 characters (10 digits)
   if (!isValidBinaryNumber(number)) {
     return error.num;
@@ -10871,11 +10871,11 @@ exports.BIN2OCT = function(number, places) {
     places = Math.floor(places);
 
     // Pad return value with leading 0s (zeros) if necessary (using Underscore.string)
-    return (places >= result.length) ? text.REPT('0', places - result.length) + result : error.num;
+    return places >= result.length ? text.REPT('0', places - result.length) + result : error.num;
   }
 };
 
-exports.BITAND = function(number1, number2) {
+exports.BITAND = function (number1, number2) {
   // Return error if either number is a non-numeric value
   number1 = utils.parseNumber(number1);
   number2 = utils.parseNumber(number2);
@@ -10902,7 +10902,7 @@ exports.BITAND = function(number1, number2) {
   return number1 & number2;
 };
 
-exports.BITLSHIFT = function(number, shift) {
+exports.BITLSHIFT = function (number, shift) {
   number = utils.parseNumber(number);
   shift = utils.parseNumber(shift);
   if (utils.anyIsError(number, shift)) {
@@ -10930,10 +10930,10 @@ exports.BITLSHIFT = function(number, shift) {
   }
 
   // Return number shifted by shift bits to the left or to the right if shift is negative
-  return (shift >= 0) ? number << shift : number >> -shift;
+  return shift >= 0 ? number << shift : number >> -shift;
 };
 
-exports.BITOR = function(number1, number2) {
+exports.BITOR = function (number1, number2) {
   number1 = utils.parseNumber(number1);
   number2 = utils.parseNumber(number2);
   if (utils.anyIsError(number1, number2)) {
@@ -10959,7 +10959,7 @@ exports.BITOR = function(number1, number2) {
   return number1 | number2;
 };
 
-exports.BITRSHIFT = function(number, shift) {
+exports.BITRSHIFT = function (number, shift) {
   number = utils.parseNumber(number);
   shift = utils.parseNumber(shift);
   if (utils.anyIsError(number, shift)) {
@@ -10987,10 +10987,10 @@ exports.BITRSHIFT = function(number, shift) {
   }
 
   // Return number shifted by shift bits to the right or to the left if shift is negative
-  return (shift >= 0) ? number >> shift : number << -shift;
+  return shift >= 0 ? number >> shift : number << -shift;
 };
 
-exports.BITXOR = function(number1, number2) {
+exports.BITXOR = function (number1, number2) {
   number1 = utils.parseNumber(number1);
   number2 = utils.parseNumber(number2);
   if (utils.anyIsError(number1, number2)) {
@@ -11016,7 +11016,7 @@ exports.BITXOR = function(number1, number2) {
   return number1 ^ number2;
 };
 
-exports.COMPLEX = function(real, imaginary, suffix) {
+exports.COMPLEX = function (real, imaginary, suffix) {
   real = utils.parseNumber(real);
   imaginary = utils.parseNumber(imaginary);
   if (utils.anyIsError(real, imaginary)) {
@@ -11024,7 +11024,7 @@ exports.COMPLEX = function(real, imaginary, suffix) {
   }
 
   // Set suffix
-  suffix = (suffix === undefined) ? 'i' : suffix;
+  suffix = suffix === undefined ? 'i' : suffix;
 
   // Return error if suffix is neither "i" nor "j"
   if (suffix !== 'i' && suffix !== 'j') {
@@ -11035,16 +11035,16 @@ exports.COMPLEX = function(real, imaginary, suffix) {
   if (real === 0 && imaginary === 0) {
     return 0;
   } else if (real === 0) {
-    return (imaginary === 1) ? suffix : imaginary.toString() + suffix;
+    return imaginary === 1 ? suffix : imaginary.toString() + suffix;
   } else if (imaginary === 0) {
     return real.toString();
   } else {
-    var sign = (imaginary > 0) ? '+' : '';
-    return real.toString() + sign + ((imaginary === 1) ? suffix : imaginary.toString() + suffix);
+    var sign = imaginary > 0 ? '+' : '';
+    return real.toString() + sign + (imaginary === 1 ? suffix : imaginary.toString() + suffix);
   }
 };
 
-exports.CONVERT = function(number, from_unit, to_unit) {
+exports.CONVERT = function (number, from_unit, to_unit) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -11052,154 +11052,7 @@ exports.CONVERT = function(number, from_unit, to_unit) {
 
   // List of units supported by CONVERT and units defined by the International System of Units
   // [Name, Symbol, Alternate symbols, Quantity, ISU, CONVERT, Conversion ratio]
-  var units = [
-    ["a.u. of action", "?", null, "action", false, false, 1.05457168181818e-34],
-    ["a.u. of charge", "e", null, "electric_charge", false, false, 1.60217653141414e-19],
-    ["a.u. of energy", "Eh", null, "energy", false, false, 4.35974417757576e-18],
-    ["a.u. of length", "a?", null, "length", false, false, 5.29177210818182e-11],
-    ["a.u. of mass", "m?", null, "mass", false, false, 9.10938261616162e-31],
-    ["a.u. of time", "?/Eh", null, "time", false, false, 2.41888432650516e-17],
-    ["admiralty knot", "admkn", null, "speed", false, true, 0.514773333],
-    ["ampere", "A", null, "electric_current", true, false, 1],
-    ["ampere per meter", "A/m", null, "magnetic_field_intensity", true, false, 1],
-    ["ångström", "Å", ["ang"], "length", false, true, 1e-10],
-    ["are", "ar", null, "area", false, true, 100],
-    ["astronomical unit", "ua", null, "length", false, false, 1.49597870691667e-11],
-    ["bar", "bar", null, "pressure", false, false, 100000],
-    ["barn", "b", null, "area", false, false, 1e-28],
-    ["becquerel", "Bq", null, "radioactivity", true, false, 1],
-    ["bit", "bit", ["b"], "information", false, true, 1],
-    ["btu", "BTU", ["btu"], "energy", false, true, 1055.05585262],
-    ["byte", "byte", null, "information", false, true, 8],
-    ["candela", "cd", null, "luminous_intensity", true, false, 1],
-    ["candela per square metre", "cd/m?", null, "luminance", true, false, 1],
-    ["coulomb", "C", null, "electric_charge", true, false, 1],
-    ["cubic ångström", "ang3", ["ang^3"], "volume", false, true, 1e-30],
-    ["cubic foot", "ft3", ["ft^3"], "volume", false, true, 0.028316846592],
-    ["cubic inch", "in3", ["in^3"], "volume", false, true, 0.000016387064],
-    ["cubic light-year", "ly3", ["ly^3"], "volume", false, true, 8.46786664623715e-47],
-    ["cubic metre", "m?", null, "volume", true, true, 1],
-    ["cubic mile", "mi3", ["mi^3"], "volume", false, true, 4168181825.44058],
-    ["cubic nautical mile", "Nmi3", ["Nmi^3"], "volume", false, true, 6352182208],
-    ["cubic Pica", "Pica3", ["Picapt3", "Pica^3", "Picapt^3"], "volume", false, true, 7.58660370370369e-8],
-    ["cubic yard", "yd3", ["yd^3"], "volume", false, true, 0.764554857984],
-    ["cup", "cup", null, "volume", false, true, 0.0002365882365],
-    ["dalton", "Da", ["u"], "mass", false, false, 1.66053886282828e-27],
-    ["day", "d", ["day"], "time", false, true, 86400],
-    ["degree", "°", null, "angle", false, false, 0.0174532925199433],
-    ["degrees Rankine", "Rank", null, "temperature", false, true, 0.555555555555556],
-    ["dyne", "dyn", ["dy"], "force", false, true, 0.00001],
-    ["electronvolt", "eV", ["ev"], "energy", false, true, 1.60217656514141],
-    ["ell", "ell", null, "length", false, true, 1.143],
-    ["erg", "erg", ["e"], "energy", false, true, 1e-7],
-    ["farad", "F", null, "electric_capacitance", true, false, 1],
-    ["fluid ounce", "oz", null, "volume", false, true, 0.0000295735295625],
-    ["foot", "ft", null, "length", false, true, 0.3048],
-    ["foot-pound", "flb", null, "energy", false, true, 1.3558179483314],
-    ["gal", "Gal", null, "acceleration", false, false, 0.01],
-    ["gallon", "gal", null, "volume", false, true, 0.003785411784],
-    ["gauss", "G", ["ga"], "magnetic_flux_density", false, true, 1],
-    ["grain", "grain", null, "mass", false, true, 0.0000647989],
-    ["gram", "g", null, "mass", false, true, 0.001],
-    ["gray", "Gy", null, "absorbed_dose", true, false, 1],
-    ["gross registered ton", "GRT", ["regton"], "volume", false, true, 2.8316846592],
-    ["hectare", "ha", null, "area", false, true, 10000],
-    ["henry", "H", null, "inductance", true, false, 1],
-    ["hertz", "Hz", null, "frequency", true, false, 1],
-    ["horsepower", "HP", ["h"], "power", false, true, 745.69987158227],
-    ["horsepower-hour", "HPh", ["hh", "hph"], "energy", false, true, 2684519.538],
-    ["hour", "h", ["hr"], "time", false, true, 3600],
-    ["imperial gallon (U.K.)", "uk_gal", null, "volume", false, true, 0.00454609],
-    ["imperial hundredweight", "lcwt", ["uk_cwt", "hweight"], "mass", false, true, 50.802345],
-    ["imperial quart (U.K)", "uk_qt", null, "volume", false, true, 0.0011365225],
-    ["imperial ton", "brton", ["uk_ton", "LTON"], "mass", false, true, 1016.046909],
-    ["inch", "in", null, "length", false, true, 0.0254],
-    ["international acre", "uk_acre", null, "area", false, true, 4046.8564224],
-    ["IT calorie", "cal", null, "energy", false, true, 4.1868],
-    ["joule", "J", null, "energy", true, true, 1],
-    ["katal", "kat", null, "catalytic_activity", true, false, 1],
-    ["kelvin", "K", ["kel"], "temperature", true, true, 1],
-    ["kilogram", "kg", null, "mass", true, true, 1],
-    ["knot", "kn", null, "speed", false, true, 0.514444444444444],
-    ["light-year", "ly", null, "length", false, true, 9460730472580800],
-    ["litre", "L", ["l", "lt"], "volume", false, true, 0.001],
-    ["lumen", "lm", null, "luminous_flux", true, false, 1],
-    ["lux", "lx", null, "illuminance", true, false, 1],
-    ["maxwell", "Mx", null, "magnetic_flux", false, false, 1e-18],
-    ["measurement ton", "MTON", null, "volume", false, true, 1.13267386368],
-    ["meter per hour", "m/h", ["m/hr"], "speed", false, true, 0.00027777777777778],
-    ["meter per second", "m/s", ["m/sec"], "speed", true, true, 1],
-    ["meter per second squared", "m?s??", null, "acceleration", true, false, 1],
-    ["parsec", "pc", ["parsec"], "length", false, true, 30856775814671900],
-    ["meter squared per second", "m?/s", null, "kinematic_viscosity", true, false, 1],
-    ["metre", "m", null, "length", true, true, 1],
-    ["miles per hour", "mph", null, "speed", false, true, 0.44704],
-    ["millimetre of mercury", "mmHg", null, "pressure", false, false, 133.322],
-    ["minute", "?", null, "angle", false, false, 0.000290888208665722],
-    ["minute", "min", ["mn"], "time", false, true, 60],
-    ["modern teaspoon", "tspm", null, "volume", false, true, 0.000005],
-    ["mole", "mol", null, "amount_of_substance", true, false, 1],
-    ["morgen", "Morgen", null, "area", false, true, 2500],
-    ["n.u. of action", "?", null, "action", false, false, 1.05457168181818e-34],
-    ["n.u. of mass", "m?", null, "mass", false, false, 9.10938261616162e-31],
-    ["n.u. of speed", "c?", null, "speed", false, false, 299792458],
-    ["n.u. of time", "?/(me?c??)", null, "time", false, false, 1.28808866778687e-21],
-    ["nautical mile", "M", ["Nmi"], "length", false, true, 1852],
-    ["newton", "N", null, "force", true, true, 1],
-    ["œrsted", "Oe ", null, "magnetic_field_intensity", false, false, 79.5774715459477],
-    ["ohm", "Ω", null, "electric_resistance", true, false, 1],
-    ["ounce mass", "ozm", null, "mass", false, true, 0.028349523125],
-    ["pascal", "Pa", null, "pressure", true, false, 1],
-    ["pascal second", "Pa?s", null, "dynamic_viscosity", true, false, 1],
-    ["pferdestärke", "PS", null, "power", false, true, 735.49875],
-    ["phot", "ph", null, "illuminance", false, false, 0.0001],
-    ["pica (1/6 inch)", "pica", null, "length", false, true, 0.00035277777777778],
-    ["pica (1/72 inch)", "Pica", ["Picapt"], "length", false, true, 0.00423333333333333],
-    ["poise", "P", null, "dynamic_viscosity", false, false, 0.1],
-    ["pond", "pond", null, "force", false, true, 0.00980665],
-    ["pound force", "lbf", null, "force", false, true, 4.4482216152605],
-    ["pound mass", "lbm", null, "mass", false, true, 0.45359237],
-    ["quart", "qt", null, "volume", false, true, 0.000946352946],
-    ["radian", "rad", null, "angle", true, false, 1],
-    ["second", "?", null, "angle", false, false, 0.00000484813681109536],
-    ["second", "s", ["sec"], "time", true, true, 1],
-    ["short hundredweight", "cwt", ["shweight"], "mass", false, true, 45.359237],
-    ["siemens", "S", null, "electrical_conductance", true, false, 1],
-    ["sievert", "Sv", null, "equivalent_dose", true, false, 1],
-    ["slug", "sg", null, "mass", false, true, 14.59390294],
-    ["square ångström", "ang2", ["ang^2"], "area", false, true, 1e-20],
-    ["square foot", "ft2", ["ft^2"], "area", false, true, 0.09290304],
-    ["square inch", "in2", ["in^2"], "area", false, true, 0.00064516],
-    ["square light-year", "ly2", ["ly^2"], "area", false, true, 8.95054210748189e+31],
-    ["square meter", "m?", null, "area", true, true, 1],
-    ["square mile", "mi2", ["mi^2"], "area", false, true, 2589988.110336],
-    ["square nautical mile", "Nmi2", ["Nmi^2"], "area", false, true, 3429904],
-    ["square Pica", "Pica2", ["Picapt2", "Pica^2", "Picapt^2"], "area", false, true, 0.00001792111111111],
-    ["square yard", "yd2", ["yd^2"], "area", false, true, 0.83612736],
-    ["statute mile", "mi", null, "length", false, true, 1609.344],
-    ["steradian", "sr", null, "solid_angle", true, false, 1],
-    ["stilb", "sb", null, "luminance", false, false, 0.0001],
-    ["stokes", "St", null, "kinematic_viscosity", false, false, 0.0001],
-    ["stone", "stone", null, "mass", false, true, 6.35029318],
-    ["tablespoon", "tbs", null, "volume", false, true, 0.0000147868],
-    ["teaspoon", "tsp", null, "volume", false, true, 0.00000492892],
-    ["tesla", "T", null, "magnetic_flux_density", true, true, 1],
-    ["thermodynamic calorie", "c", null, "energy", false, true, 4.184],
-    ["ton", "ton", null, "mass", false, true, 907.18474],
-    ["tonne", "t", null, "mass", false, false, 1000],
-    ["U.K. pint", "uk_pt", null, "volume", false, true, 0.00056826125],
-    ["U.S. bushel", "bushel", null, "volume", false, true, 0.03523907],
-    ["U.S. oil barrel", "barrel", null, "volume", false, true, 0.158987295],
-    ["U.S. pint", "pt", ["us_pt"], "volume", false, true, 0.000473176473],
-    ["U.S. survey mile", "survey_mi", null, "length", false, true, 1609.347219],
-    ["U.S. survey/statute acre", "us_acre", null, "area", false, true, 4046.87261],
-    ["volt", "V", null, "voltage", true, false, 1],
-    ["watt", "W", null, "power", true, true, 1],
-    ["watt-hour", "Wh", ["wh"], "energy", false, true, 3600],
-    ["weber", "Wb", null, "magnetic_flux", true, false, 1],
-    ["yard", "yd", null, "length", false, true, 0.9144],
-    ["year", "yr", null, "time", false, true, 31557600]
-  ];
+  var units = [["a.u. of action", "?", null, "action", false, false, 1.05457168181818e-34], ["a.u. of charge", "e", null, "electric_charge", false, false, 1.60217653141414e-19], ["a.u. of energy", "Eh", null, "energy", false, false, 4.35974417757576e-18], ["a.u. of length", "a?", null, "length", false, false, 5.29177210818182e-11], ["a.u. of mass", "m?", null, "mass", false, false, 9.10938261616162e-31], ["a.u. of time", "?/Eh", null, "time", false, false, 2.41888432650516e-17], ["admiralty knot", "admkn", null, "speed", false, true, 0.514773333], ["ampere", "A", null, "electric_current", true, false, 1], ["ampere per meter", "A/m", null, "magnetic_field_intensity", true, false, 1], ["ångström", "Å", ["ang"], "length", false, true, 1e-10], ["are", "ar", null, "area", false, true, 100], ["astronomical unit", "ua", null, "length", false, false, 1.49597870691667e-11], ["bar", "bar", null, "pressure", false, false, 100000], ["barn", "b", null, "area", false, false, 1e-28], ["becquerel", "Bq", null, "radioactivity", true, false, 1], ["bit", "bit", ["b"], "information", false, true, 1], ["btu", "BTU", ["btu"], "energy", false, true, 1055.05585262], ["byte", "byte", null, "information", false, true, 8], ["candela", "cd", null, "luminous_intensity", true, false, 1], ["candela per square metre", "cd/m?", null, "luminance", true, false, 1], ["coulomb", "C", null, "electric_charge", true, false, 1], ["cubic ångström", "ang3", ["ang^3"], "volume", false, true, 1e-30], ["cubic foot", "ft3", ["ft^3"], "volume", false, true, 0.028316846592], ["cubic inch", "in3", ["in^3"], "volume", false, true, 0.000016387064], ["cubic light-year", "ly3", ["ly^3"], "volume", false, true, 8.46786664623715e-47], ["cubic metre", "m?", null, "volume", true, true, 1], ["cubic mile", "mi3", ["mi^3"], "volume", false, true, 4168181825.44058], ["cubic nautical mile", "Nmi3", ["Nmi^3"], "volume", false, true, 6352182208], ["cubic Pica", "Pica3", ["Picapt3", "Pica^3", "Picapt^3"], "volume", false, true, 7.58660370370369e-8], ["cubic yard", "yd3", ["yd^3"], "volume", false, true, 0.764554857984], ["cup", "cup", null, "volume", false, true, 0.0002365882365], ["dalton", "Da", ["u"], "mass", false, false, 1.66053886282828e-27], ["day", "d", ["day"], "time", false, true, 86400], ["degree", "°", null, "angle", false, false, 0.0174532925199433], ["degrees Rankine", "Rank", null, "temperature", false, true, 0.555555555555556], ["dyne", "dyn", ["dy"], "force", false, true, 0.00001], ["electronvolt", "eV", ["ev"], "energy", false, true, 1.60217656514141], ["ell", "ell", null, "length", false, true, 1.143], ["erg", "erg", ["e"], "energy", false, true, 1e-7], ["farad", "F", null, "electric_capacitance", true, false, 1], ["fluid ounce", "oz", null, "volume", false, true, 0.0000295735295625], ["foot", "ft", null, "length", false, true, 0.3048], ["foot-pound", "flb", null, "energy", false, true, 1.3558179483314], ["gal", "Gal", null, "acceleration", false, false, 0.01], ["gallon", "gal", null, "volume", false, true, 0.003785411784], ["gauss", "G", ["ga"], "magnetic_flux_density", false, true, 1], ["grain", "grain", null, "mass", false, true, 0.0000647989], ["gram", "g", null, "mass", false, true, 0.001], ["gray", "Gy", null, "absorbed_dose", true, false, 1], ["gross registered ton", "GRT", ["regton"], "volume", false, true, 2.8316846592], ["hectare", "ha", null, "area", false, true, 10000], ["henry", "H", null, "inductance", true, false, 1], ["hertz", "Hz", null, "frequency", true, false, 1], ["horsepower", "HP", ["h"], "power", false, true, 745.69987158227], ["horsepower-hour", "HPh", ["hh", "hph"], "energy", false, true, 2684519.538], ["hour", "h", ["hr"], "time", false, true, 3600], ["imperial gallon (U.K.)", "uk_gal", null, "volume", false, true, 0.00454609], ["imperial hundredweight", "lcwt", ["uk_cwt", "hweight"], "mass", false, true, 50.802345], ["imperial quart (U.K)", "uk_qt", null, "volume", false, true, 0.0011365225], ["imperial ton", "brton", ["uk_ton", "LTON"], "mass", false, true, 1016.046909], ["inch", "in", null, "length", false, true, 0.0254], ["international acre", "uk_acre", null, "area", false, true, 4046.8564224], ["IT calorie", "cal", null, "energy", false, true, 4.1868], ["joule", "J", null, "energy", true, true, 1], ["katal", "kat", null, "catalytic_activity", true, false, 1], ["kelvin", "K", ["kel"], "temperature", true, true, 1], ["kilogram", "kg", null, "mass", true, true, 1], ["knot", "kn", null, "speed", false, true, 0.514444444444444], ["light-year", "ly", null, "length", false, true, 9460730472580800], ["litre", "L", ["l", "lt"], "volume", false, true, 0.001], ["lumen", "lm", null, "luminous_flux", true, false, 1], ["lux", "lx", null, "illuminance", true, false, 1], ["maxwell", "Mx", null, "magnetic_flux", false, false, 1e-18], ["measurement ton", "MTON", null, "volume", false, true, 1.13267386368], ["meter per hour", "m/h", ["m/hr"], "speed", false, true, 0.00027777777777778], ["meter per second", "m/s", ["m/sec"], "speed", true, true, 1], ["meter per second squared", "m?s??", null, "acceleration", true, false, 1], ["parsec", "pc", ["parsec"], "length", false, true, 30856775814671900], ["meter squared per second", "m?/s", null, "kinematic_viscosity", true, false, 1], ["metre", "m", null, "length", true, true, 1], ["miles per hour", "mph", null, "speed", false, true, 0.44704], ["millimetre of mercury", "mmHg", null, "pressure", false, false, 133.322], ["minute", "?", null, "angle", false, false, 0.000290888208665722], ["minute", "min", ["mn"], "time", false, true, 60], ["modern teaspoon", "tspm", null, "volume", false, true, 0.000005], ["mole", "mol", null, "amount_of_substance", true, false, 1], ["morgen", "Morgen", null, "area", false, true, 2500], ["n.u. of action", "?", null, "action", false, false, 1.05457168181818e-34], ["n.u. of mass", "m?", null, "mass", false, false, 9.10938261616162e-31], ["n.u. of speed", "c?", null, "speed", false, false, 299792458], ["n.u. of time", "?/(me?c??)", null, "time", false, false, 1.28808866778687e-21], ["nautical mile", "M", ["Nmi"], "length", false, true, 1852], ["newton", "N", null, "force", true, true, 1], ["œrsted", "Oe ", null, "magnetic_field_intensity", false, false, 79.5774715459477], ["ohm", "Ω", null, "electric_resistance", true, false, 1], ["ounce mass", "ozm", null, "mass", false, true, 0.028349523125], ["pascal", "Pa", null, "pressure", true, false, 1], ["pascal second", "Pa?s", null, "dynamic_viscosity", true, false, 1], ["pferdestärke", "PS", null, "power", false, true, 735.49875], ["phot", "ph", null, "illuminance", false, false, 0.0001], ["pica (1/6 inch)", "pica", null, "length", false, true, 0.00035277777777778], ["pica (1/72 inch)", "Pica", ["Picapt"], "length", false, true, 0.00423333333333333], ["poise", "P", null, "dynamic_viscosity", false, false, 0.1], ["pond", "pond", null, "force", false, true, 0.00980665], ["pound force", "lbf", null, "force", false, true, 4.4482216152605], ["pound mass", "lbm", null, "mass", false, true, 0.45359237], ["quart", "qt", null, "volume", false, true, 0.000946352946], ["radian", "rad", null, "angle", true, false, 1], ["second", "?", null, "angle", false, false, 0.00000484813681109536], ["second", "s", ["sec"], "time", true, true, 1], ["short hundredweight", "cwt", ["shweight"], "mass", false, true, 45.359237], ["siemens", "S", null, "electrical_conductance", true, false, 1], ["sievert", "Sv", null, "equivalent_dose", true, false, 1], ["slug", "sg", null, "mass", false, true, 14.59390294], ["square ångström", "ang2", ["ang^2"], "area", false, true, 1e-20], ["square foot", "ft2", ["ft^2"], "area", false, true, 0.09290304], ["square inch", "in2", ["in^2"], "area", false, true, 0.00064516], ["square light-year", "ly2", ["ly^2"], "area", false, true, 8.95054210748189e+31], ["square meter", "m?", null, "area", true, true, 1], ["square mile", "mi2", ["mi^2"], "area", false, true, 2589988.110336], ["square nautical mile", "Nmi2", ["Nmi^2"], "area", false, true, 3429904], ["square Pica", "Pica2", ["Picapt2", "Pica^2", "Picapt^2"], "area", false, true, 0.00001792111111111], ["square yard", "yd2", ["yd^2"], "area", false, true, 0.83612736], ["statute mile", "mi", null, "length", false, true, 1609.344], ["steradian", "sr", null, "solid_angle", true, false, 1], ["stilb", "sb", null, "luminance", false, false, 0.0001], ["stokes", "St", null, "kinematic_viscosity", false, false, 0.0001], ["stone", "stone", null, "mass", false, true, 6.35029318], ["tablespoon", "tbs", null, "volume", false, true, 0.0000147868], ["teaspoon", "tsp", null, "volume", false, true, 0.00000492892], ["tesla", "T", null, "magnetic_flux_density", true, true, 1], ["thermodynamic calorie", "c", null, "energy", false, true, 4.184], ["ton", "ton", null, "mass", false, true, 907.18474], ["tonne", "t", null, "mass", false, false, 1000], ["U.K. pint", "uk_pt", null, "volume", false, true, 0.00056826125], ["U.S. bushel", "bushel", null, "volume", false, true, 0.03523907], ["U.S. oil barrel", "barrel", null, "volume", false, true, 0.158987295], ["U.S. pint", "pt", ["us_pt"], "volume", false, true, 0.000473176473], ["U.S. survey mile", "survey_mi", null, "length", false, true, 1609.347219], ["U.S. survey/statute acre", "us_acre", null, "area", false, true, 4046.87261], ["volt", "V", null, "voltage", true, false, 1], ["watt", "W", null, "power", true, true, 1], ["watt-hour", "Wh", ["wh"], "energy", false, true, 3600], ["weber", "Wb", null, "magnetic_flux", true, false, 1], ["yard", "yd", null, "length", false, true, 0.9144], ["year", "yr", null, "time", false, true, 31557600]];
 
   // Binary prefixes
   // [Name, Prefix power of 2 value, Previx value, Abbreviation, Derived from]
@@ -11250,7 +11103,7 @@ exports.CONVERT = function(number, from_unit, to_unit) {
 
   // Lookup from and to units
   for (var i = 0; i < units.length; i++) {
-    alt = (units[i][2] === null) ? [] : units[i][2];
+    alt = units[i][2] === null ? [] : units[i][2];
     if (units[i][1] === base_from_unit || alt.indexOf(base_from_unit) >= 0) {
       from = units[i];
     }
@@ -11280,7 +11133,7 @@ exports.CONVERT = function(number, from_unit, to_unit) {
 
     // Lookup from unit
     for (var j = 0; j < units.length; j++) {
-      alt = (units[j][2] === null) ? [] : units[j][2];
+      alt = units[j][2] === null ? [] : units[j][2];
       if (units[j][1] === base_from_unit || alt.indexOf(base_from_unit) >= 0) {
         from = units[j];
       }
@@ -11308,7 +11161,7 @@ exports.CONVERT = function(number, from_unit, to_unit) {
 
     // Lookup to unit
     for (var k = 0; k < units.length; k++) {
-      alt = (units[k][2] === null) ? [] : units[k][2];
+      alt = units[k][2] === null ? [] : units[k][2];
       if (units[k][1] === base_to_unit || alt.indexOf(base_to_unit) >= 0) {
         to = units[k];
       }
@@ -11329,7 +11182,7 @@ exports.CONVERT = function(number, from_unit, to_unit) {
   return number * from[6] * from_multiplier / (to[6] * to_multiplier);
 };
 
-exports.DEC2BIN = function(number, places) {
+exports.DEC2BIN = function (number, places) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -11366,11 +11219,11 @@ exports.DEC2BIN = function(number, places) {
     places = Math.floor(places);
 
     // Pad return value with leading 0s (zeros) if necessary (using Underscore.string)
-    return (places >= result.length) ? text.REPT('0', places - result.length) + result : error.num;
+    return places >= result.length ? text.REPT('0', places - result.length) + result : error.num;
   }
 };
 
-exports.DEC2HEX = function(number, places) {
+exports.DEC2HEX = function (number, places) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -11407,11 +11260,11 @@ exports.DEC2HEX = function(number, places) {
     places = Math.floor(places);
 
     // Pad return value with leading 0s (zeros) if necessary (using Underscore.string)
-    return (places >= result.length) ? text.REPT('0', places - result.length) + result : error.num;
+    return places >= result.length ? text.REPT('0', places - result.length) + result : error.num;
   }
 };
 
-exports.DEC2OCT = function(number, places) {
+exports.DEC2OCT = function (number, places) {
   number = utils.parseNumber(number);
   if (number instanceof Error) {
     return number;
@@ -11448,13 +11301,13 @@ exports.DEC2OCT = function(number, places) {
     places = Math.floor(places);
 
     // Pad return value with leading 0s (zeros) if necessary (using Underscore.string)
-    return (places >= result.length) ? text.REPT('0', places - result.length) + result : error.num;
+    return places >= result.length ? text.REPT('0', places - result.length) + result : error.num;
   }
 };
 
-exports.DELTA = function(number1, number2) {
+exports.DELTA = function (number1, number2) {
   // Set number2 to zero if undefined
-  number2 = (number2 === undefined) ? 0 : number2;
+  number2 = number2 === undefined ? 0 : number2;
   number1 = utils.parseNumber(number1);
   number2 = utils.parseNumber(number2);
   if (utils.anyIsError(number1, number2)) {
@@ -11462,13 +11315,13 @@ exports.DELTA = function(number1, number2) {
   }
 
   // Return delta
-  return (number1 === number2) ? 1 : 0;
+  return number1 === number2 ? 1 : 0;
 };
 
 // TODO: why is upper_bound not used ? The excel documentation has no examples with upper_bound
-exports.ERF = function(lower_bound, upper_bound) {
+exports.ERF = function (lower_bound, upper_bound) {
   // Set number2 to zero if undefined
-  upper_bound = (upper_bound === undefined) ? 0 : upper_bound;
+  upper_bound = upper_bound === undefined ? 0 : upper_bound;
 
   lower_bound = utils.parseNumber(lower_bound);
   upper_bound = utils.parseNumber(upper_bound);
@@ -11480,11 +11333,11 @@ exports.ERF = function(lower_bound, upper_bound) {
 };
 
 // TODO
-exports.ERF.PRECISE = function() {
+exports.ERF.PRECISE = function () {
   throw new Error('ERF.PRECISE is not implemented');
 };
 
-exports.ERFC = function(x) {
+exports.ERFC = function (x) {
   // Return error if x is not a number
   if (isNaN(x)) {
     return error.value;
@@ -11494,11 +11347,11 @@ exports.ERFC = function(x) {
 };
 
 // TODO
-exports.ERFC.PRECISE = function() {
+exports.ERFC.PRECISE = function () {
   throw new Error('ERFC.PRECISE is not implemented');
 };
 
-exports.GESTEP = function(number, step) {
+exports.GESTEP = function (number, step) {
   step = step || 0;
   number = utils.parseNumber(number);
   if (utils.anyIsError(step, number)) {
@@ -11506,20 +11359,20 @@ exports.GESTEP = function(number, step) {
   }
 
   // Return delta
-  return (number >= step) ? 1 : 0;
+  return number >= step ? 1 : 0;
 };
 
-exports.HEX2BIN = function(number, places) {
+exports.HEX2BIN = function (number, places) {
   // Return error if number is not hexadecimal or contains more than ten characters (10 digits)
   if (!/^[0-9A-Fa-f]{1,10}$/.test(number)) {
     return error.num;
   }
 
   // Check if number is negative
-  var negative = (number.length === 10 && number.substring(0, 1).toLowerCase() === 'f') ? true : false;
+  var negative = number.length === 10 && number.substring(0, 1).toLowerCase() === 'f' ? true : false;
 
   // Convert hexadecimal number to decimal
-  var decimal = (negative) ? parseInt(number, 16) - 1099511627776 : parseInt(number, 16);
+  var decimal = negative ? parseInt(number, 16) - 1099511627776 : parseInt(number, 16);
 
   // Return error if number is lower than -512 or greater than 511
   if (decimal < -512 || decimal > 511) {
@@ -11552,11 +11405,11 @@ exports.HEX2BIN = function(number, places) {
     places = Math.floor(places);
 
     // Pad return value with leading 0s (zeros) if necessary (using Underscore.string)
-    return (places >= result.length) ? text.REPT('0', places - result.length) + result : error.num;
+    return places >= result.length ? text.REPT('0', places - result.length) + result : error.num;
   }
 };
 
-exports.HEX2DEC = function(number) {
+exports.HEX2DEC = function (number) {
   // Return error if number is not hexadecimal or contains more than ten characters (10 digits)
   if (!/^[0-9A-Fa-f]{1,10}$/.test(number)) {
     return error.num;
@@ -11566,10 +11419,10 @@ exports.HEX2DEC = function(number) {
   var decimal = parseInt(number, 16);
 
   // Return decimal number
-  return (decimal >= 549755813888) ? decimal - 1099511627776 : decimal;
+  return decimal >= 549755813888 ? decimal - 1099511627776 : decimal;
 };
 
-exports.HEX2OCT = function(number, places) {
+exports.HEX2OCT = function (number, places) {
   // Return error if number is not hexadecimal or contains more than ten characters (10 digits)
   if (!/^[0-9A-Fa-f]{1,10}$/.test(number)) {
     return error.num;
@@ -11609,11 +11462,11 @@ exports.HEX2OCT = function(number, places) {
     places = Math.floor(places);
 
     // Pad return value with leading 0s (zeros) if necessary (using Underscore.string)
-    return (places >= result.length) ? text.REPT('0', places - result.length) + result : error.num;
+    return places >= result.length ? text.REPT('0', places - result.length) + result : error.num;
   }
 };
 
-exports.IMABS = function(inumber) {
+exports.IMABS = function (inumber) {
   // Lookup real and imaginary coefficients using exports.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -11627,7 +11480,7 @@ exports.IMABS = function(inumber) {
   return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 };
 
-exports.IMAGINARY = function(inumber) {
+exports.IMAGINARY = function (inumber) {
   if (inumber === undefined || inumber === true || inumber === false) {
     return error.value;
   }
@@ -11658,7 +11511,7 @@ exports.IMAGINARY = function(inumber) {
 
   // Lookup imaginary unit
   var last = inumber.substring(inumber.length - 1, inumber.length);
-  var unit = (last === 'i' || last === 'j');
+  var unit = last === 'i' || last === 'j';
 
   if (plus >= 0 || minus >= 0) {
     // Return error if imaginary unit is neither i nor j
@@ -11668,24 +11521,20 @@ exports.IMAGINARY = function(inumber) {
 
     // Return imaginary coefficient of complex number
     if (plus >= 0) {
-      return (isNaN(inumber.substring(0, plus)) || isNaN(inumber.substring(plus + 1, inumber.length - 1))) ?
-        error.num :
-        Number(inumber.substring(plus + 1, inumber.length - 1));
+      return isNaN(inumber.substring(0, plus)) || isNaN(inumber.substring(plus + 1, inumber.length - 1)) ? error.num : Number(inumber.substring(plus + 1, inumber.length - 1));
     } else {
-      return (isNaN(inumber.substring(0, minus)) || isNaN(inumber.substring(minus + 1, inumber.length - 1))) ?
-        error.num :
-        -Number(inumber.substring(minus + 1, inumber.length - 1));
+      return isNaN(inumber.substring(0, minus)) || isNaN(inumber.substring(minus + 1, inumber.length - 1)) ? error.num : -Number(inumber.substring(minus + 1, inumber.length - 1));
     }
   } else {
     if (unit) {
-      return (isNaN(inumber.substring(0, inumber.length - 1))) ? error.num : inumber.substring(0, inumber.length - 1);
+      return isNaN(inumber.substring(0, inumber.length - 1)) ? error.num : inumber.substring(0, inumber.length - 1);
     } else {
-      return (isNaN(inumber)) ? error.num : 0;
+      return isNaN(inumber) ? error.num : 0;
     }
   }
 };
 
-exports.IMARGUMENT = function(inumber) {
+exports.IMARGUMENT = function (inumber) {
   // Lookup real and imaginary coefficients using exports.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -11730,7 +11579,7 @@ exports.IMARGUMENT = function(inumber) {
   }
 };
 
-exports.IMCONJUGATE = function(inumber) {
+exports.IMCONJUGATE = function (inumber) {
   // Lookup real and imaginary coefficients using exports.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -11741,13 +11590,13 @@ exports.IMCONJUGATE = function(inumber) {
 
   // Lookup imaginary unit
   var unit = inumber.substring(inumber.length - 1);
-  unit = (unit === 'i' || unit === 'j') ? unit : 'i';
+  unit = unit === 'i' || unit === 'j' ? unit : 'i';
 
   // Return conjugate of complex number
-  return (y !== 0) ? exports.COMPLEX(x, -y, unit) : inumber;
+  return y !== 0 ? exports.COMPLEX(x, -y, unit) : inumber;
 };
 
-exports.IMCOS = function(inumber) {
+exports.IMCOS = function (inumber) {
   // Lookup real and imaginary coefficients using exports.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -11758,13 +11607,13 @@ exports.IMCOS = function(inumber) {
 
   // Lookup imaginary unit
   var unit = inumber.substring(inumber.length - 1);
-  unit = (unit === 'i' || unit === 'j') ? unit : 'i';
+  unit = unit === 'i' || unit === 'j' ? unit : 'i';
 
   // Return cosine of complex number
   return exports.COMPLEX(Math.cos(x) * (Math.exp(y) + Math.exp(-y)) / 2, -Math.sin(x) * (Math.exp(y) - Math.exp(-y)) / 2, unit);
 };
 
-exports.IMCOSH = function(inumber) {
+exports.IMCOSH = function (inumber) {
   // Lookup real and imaginary coefficients using exports.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -11775,13 +11624,13 @@ exports.IMCOSH = function(inumber) {
 
   // Lookup imaginary unit
   var unit = inumber.substring(inumber.length - 1);
-  unit = (unit === 'i' || unit === 'j') ? unit : 'i';
+  unit = unit === 'i' || unit === 'j' ? unit : 'i';
 
   // Return hyperbolic cosine of complex number
   return exports.COMPLEX(Math.cos(y) * (Math.exp(x) + Math.exp(-x)) / 2, Math.sin(y) * (Math.exp(x) - Math.exp(-x)) / 2, unit);
 };
 
-exports.IMCOT = function(inumber) {
+exports.IMCOT = function (inumber) {
   // Lookup real and imaginary coefficients using Formula.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -11794,7 +11643,7 @@ exports.IMCOT = function(inumber) {
   return exports.IMDIV(exports.IMCOS(inumber), exports.IMSIN(inumber));
 };
 
-exports.IMDIV = function(inumber1, inumber2) {
+exports.IMDIV = function (inumber1, inumber2) {
   // Lookup real and imaginary coefficients using Formula.js [http://formulajs.org]
   var a = exports.IMREAL(inumber1);
   var b = exports.IMAGINARY(inumber1);
@@ -11825,7 +11674,7 @@ exports.IMDIV = function(inumber1, inumber2) {
   return exports.COMPLEX((a * c + b * d) / den, (b * c - a * d) / den, unit);
 };
 
-exports.IMEXP = function(inumber) {
+exports.IMEXP = function (inumber) {
   // Lookup real and imaginary coefficients using Formula.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -11836,14 +11685,14 @@ exports.IMEXP = function(inumber) {
 
   // Lookup imaginary unit
   var unit = inumber.substring(inumber.length - 1);
-  unit = (unit === 'i' || unit === 'j') ? unit : 'i';
+  unit = unit === 'i' || unit === 'j' ? unit : 'i';
 
   // Return exponential of complex number
   var e = Math.exp(x);
   return exports.COMPLEX(e * Math.cos(y), e * Math.sin(y), unit);
 };
 
-exports.IMLN = function(inumber) {
+exports.IMLN = function (inumber) {
   // Lookup real and imaginary coefficients using Formula.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -11854,13 +11703,13 @@ exports.IMLN = function(inumber) {
 
   // Lookup imaginary unit
   var unit = inumber.substring(inumber.length - 1);
-  unit = (unit === 'i' || unit === 'j') ? unit : 'i';
+  unit = unit === 'i' || unit === 'j' ? unit : 'i';
 
   // Return exponential of complex number
   return exports.COMPLEX(Math.log(Math.sqrt(x * x + y * y)), Math.atan(y / x), unit);
 };
 
-exports.IMLOG10 = function(inumber) {
+exports.IMLOG10 = function (inumber) {
   // Lookup real and imaginary coefficients using Formula.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -11871,13 +11720,13 @@ exports.IMLOG10 = function(inumber) {
 
   // Lookup imaginary unit
   var unit = inumber.substring(inumber.length - 1);
-  unit = (unit === 'i' || unit === 'j') ? unit : 'i';
+  unit = unit === 'i' || unit === 'j' ? unit : 'i';
 
   // Return exponential of complex number
   return exports.COMPLEX(Math.log(Math.sqrt(x * x + y * y)) / Math.log(10), Math.atan(y / x) / Math.log(10), unit);
 };
 
-exports.IMLOG2 = function(inumber) {
+exports.IMLOG2 = function (inumber) {
   // Lookup real and imaginary coefficients using Formula.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -11888,13 +11737,13 @@ exports.IMLOG2 = function(inumber) {
 
   // Lookup imaginary unit
   var unit = inumber.substring(inumber.length - 1);
-  unit = (unit === 'i' || unit === 'j') ? unit : 'i';
+  unit = unit === 'i' || unit === 'j' ? unit : 'i';
 
   // Return exponential of complex number
   return exports.COMPLEX(Math.log(Math.sqrt(x * x + y * y)) / Math.log(2), Math.atan(y / x) / Math.log(2), unit);
 };
 
-exports.IMPOWER = function(inumber, number) {
+exports.IMPOWER = function (inumber, number) {
   number = utils.parseNumber(number);
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -11904,7 +11753,7 @@ exports.IMPOWER = function(inumber, number) {
 
   // Lookup imaginary unit
   var unit = inumber.substring(inumber.length - 1);
-  unit = (unit === 'i' || unit === 'j') ? unit : 'i';
+  unit = unit === 'i' || unit === 'j' ? unit : 'i';
 
   // Calculate power of modulus
   var p = Math.pow(exports.IMABS(inumber), number);
@@ -11916,7 +11765,7 @@ exports.IMPOWER = function(inumber, number) {
   return exports.COMPLEX(p * Math.cos(number * t), p * Math.sin(number * t), unit);
 };
 
-exports.IMPRODUCT = function() {
+exports.IMPRODUCT = function () {
   // Initialize result
   var result = arguments[0];
 
@@ -11944,7 +11793,7 @@ exports.IMPRODUCT = function() {
   return result;
 };
 
-exports.IMREAL = function(inumber) {
+exports.IMREAL = function (inumber) {
   if (inumber === undefined || inumber === true || inumber === false) {
     return error.value;
   }
@@ -11971,7 +11820,7 @@ exports.IMREAL = function(inumber) {
 
   // Lookup imaginary unit
   var last = inumber.substring(inumber.length - 1, inumber.length);
-  var unit = (last === 'i' || last === 'j');
+  var unit = last === 'i' || last === 'j';
 
   if (plus >= 0 || minus >= 0) {
     // Return error if imaginary unit is neither i nor j
@@ -11981,24 +11830,20 @@ exports.IMREAL = function(inumber) {
 
     // Return real coefficient of complex number
     if (plus >= 0) {
-      return (isNaN(inumber.substring(0, plus)) || isNaN(inumber.substring(plus + 1, inumber.length - 1))) ?
-        error.num :
-        Number(inumber.substring(0, plus));
+      return isNaN(inumber.substring(0, plus)) || isNaN(inumber.substring(plus + 1, inumber.length - 1)) ? error.num : Number(inumber.substring(0, plus));
     } else {
-      return (isNaN(inumber.substring(0, minus)) || isNaN(inumber.substring(minus + 1, inumber.length - 1))) ?
-        error.num :
-        Number(inumber.substring(0, minus));
+      return isNaN(inumber.substring(0, minus)) || isNaN(inumber.substring(minus + 1, inumber.length - 1)) ? error.num : Number(inumber.substring(0, minus));
     }
   } else {
     if (unit) {
-      return (isNaN(inumber.substring(0, inumber.length - 1))) ? error.num : 0;
+      return isNaN(inumber.substring(0, inumber.length - 1)) ? error.num : 0;
     } else {
-      return (isNaN(inumber)) ? error.num : inumber;
+      return isNaN(inumber) ? error.num : inumber;
     }
   }
 };
 
-exports.IMSEC = function(inumber) {
+exports.IMSEC = function (inumber) {
   // Return error if inumber is a logical value
   if (inumber === true || inumber === false) {
     return error.value;
@@ -12016,7 +11861,7 @@ exports.IMSEC = function(inumber) {
   return exports.IMDIV('1', exports.IMCOS(inumber));
 };
 
-exports.IMSECH = function(inumber) {
+exports.IMSECH = function (inumber) {
   // Lookup real and imaginary coefficients using Formula.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -12029,7 +11874,7 @@ exports.IMSECH = function(inumber) {
   return exports.IMDIV('1', exports.IMCOSH(inumber));
 };
 
-exports.IMSIN = function(inumber) {
+exports.IMSIN = function (inumber) {
   // Lookup real and imaginary coefficients using Formula.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -12040,13 +11885,13 @@ exports.IMSIN = function(inumber) {
 
   // Lookup imaginary unit
   var unit = inumber.substring(inumber.length - 1);
-  unit = (unit === 'i' || unit === 'j') ? unit : 'i';
+  unit = unit === 'i' || unit === 'j' ? unit : 'i';
 
   // Return sine of complex number
   return exports.COMPLEX(Math.sin(x) * (Math.exp(y) + Math.exp(-y)) / 2, Math.cos(x) * (Math.exp(y) - Math.exp(-y)) / 2, unit);
 };
 
-exports.IMSINH = function(inumber) {
+exports.IMSINH = function (inumber) {
   // Lookup real and imaginary coefficients using Formula.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -12057,13 +11902,13 @@ exports.IMSINH = function(inumber) {
 
   // Lookup imaginary unit
   var unit = inumber.substring(inumber.length - 1);
-  unit = (unit === 'i' || unit === 'j') ? unit : 'i';
+  unit = unit === 'i' || unit === 'j' ? unit : 'i';
 
   // Return hyperbolic sine of complex number
   return exports.COMPLEX(Math.cos(y) * (Math.exp(x) - Math.exp(-x)) / 2, Math.sin(y) * (Math.exp(x) + Math.exp(-x)) / 2, unit);
 };
 
-exports.IMSQRT = function(inumber) {
+exports.IMSQRT = function (inumber) {
   // Lookup real and imaginary coefficients using Formula.js [http://formulajs.org]
   var x = exports.IMREAL(inumber);
   var y = exports.IMAGINARY(inumber);
@@ -12074,7 +11919,7 @@ exports.IMSQRT = function(inumber) {
 
   // Lookup imaginary unit
   var unit = inumber.substring(inumber.length - 1);
-  unit = (unit === 'i' || unit === 'j') ? unit : 'i';
+  unit = unit === 'i' || unit === 'j' ? unit : 'i';
 
   // Calculate power of modulus
   var s = Math.sqrt(exports.IMABS(inumber));
@@ -12124,7 +11969,7 @@ exports.IMCSCH = function (inumber) {
   return exports.IMDIV('1', exports.IMSINH(inumber));
 };
 
-exports.IMSUB = function(inumber1, inumber2) {
+exports.IMSUB = function (inumber1, inumber2) {
   // Lookup real and imaginary coefficients using Formula.js [http://formulajs.org]
   var a = this.IMREAL(inumber1);
   var b = this.IMAGINARY(inumber1);
@@ -12149,7 +11994,7 @@ exports.IMSUB = function(inumber1, inumber2) {
   return this.COMPLEX(a - c, b - d, unit);
 };
 
-exports.IMSUM = function() {
+exports.IMSUM = function () {
   if (!arguments.length) {
     return error.value;
   }
@@ -12178,7 +12023,7 @@ exports.IMSUM = function() {
   return result;
 };
 
-exports.IMTAN = function(inumber) {
+exports.IMTAN = function (inumber) {
   // Return error if inumber is a logical value
   if (inumber === true || inumber === false) {
     return error.value;
@@ -12196,17 +12041,17 @@ exports.IMTAN = function(inumber) {
   return this.IMDIV(this.IMSIN(inumber), this.IMCOS(inumber));
 };
 
-exports.OCT2BIN = function(number, places) {
+exports.OCT2BIN = function (number, places) {
   // Return error if number is not hexadecimal or contains more than ten characters (10 digits)
   if (!/^[0-7]{1,10}$/.test(number)) {
     return error.num;
   }
 
   // Check if number is negative
-  var negative = (number.length === 10 && number.substring(0, 1) === '7') ? true : false;
+  var negative = number.length === 10 && number.substring(0, 1) === '7' ? true : false;
 
   // Convert octal number to decimal
-  var decimal = (negative) ? parseInt(number, 8) - 1073741824 : parseInt(number, 8);
+  var decimal = negative ? parseInt(number, 8) - 1073741824 : parseInt(number, 8);
 
   // Return error if number is lower than -512 or greater than 511
   if (decimal < -512 || decimal > 511) {
@@ -12239,11 +12084,11 @@ exports.OCT2BIN = function(number, places) {
     places = Math.floor(places);
 
     // Pad return value with leading 0s (zeros) if necessary (using Underscore.string)
-    return (places >= result.length) ? text.REPT('0', places - result.length) + result : error.num;
+    return places >= result.length ? text.REPT('0', places - result.length) + result : error.num;
   }
 };
 
-exports.OCT2DEC = function(number) {
+exports.OCT2DEC = function (number) {
   // Return error if number is not octal or contains more than ten characters (10 digits)
   if (!/^[0-7]{1,10}$/.test(number)) {
     return error.num;
@@ -12253,10 +12098,10 @@ exports.OCT2DEC = function(number) {
   var decimal = parseInt(number, 8);
 
   // Return decimal number
-  return (decimal >= 536870912) ? decimal - 1073741824 : decimal;
+  return decimal >= 536870912 ? decimal - 1073741824 : decimal;
 };
 
-exports.OCT2HEX = function(number, places) {
+exports.OCT2HEX = function (number, places) {
   // Return error if number is not octal or contains more than ten characters (10 digits)
   if (!/^[0-7]{1,10}$/.test(number)) {
     return error.num;
@@ -12291,10 +12136,9 @@ exports.OCT2HEX = function(number, places) {
     places = Math.floor(places);
 
     // Pad return value with leading 0s (zeros) if necessary (using Underscore.string)
-    return (places >= result.length) ? text.REPT('0', places - result.length) + result : error.num;
+    return places >= result.length ? text.REPT('0', places - result.length) + result : error.num;
   }
 };
-
 
 /***/ }),
 /* 14 */
@@ -12304,7 +12148,7 @@ exports.OCT2HEX = function(number, places) {
 
 
 exports.__esModule = true;
-var SUPPORTED_FORMULAS = ['ABS', 'ACCRINT', 'ACOS', 'ACOSH', 'ACOT', 'ACOTH', 'ADD', 'AGGREGATE', 'AND', 'ARABIC', 'ARGS2ARRAY', 'ASIN', 'ASINH', 'ATAN', 'ATAN2', 'ATANH', 'AVEDEV', 'AVERAGE', 'AVERAGEA', 'AVERAGEIF', 'AVERAGEIFS', 'BASE', 'BESSELI', 'BESSELJ', 'BESSELK', 'BESSELY', 'BETA.DIST', 'BETA.INV', 'BETADIST', 'BETAINV', 'BIN2DEC', 'BIN2HEX', 'BIN2OCT', 'BINOM.DIST', 'BINOM.DIST.RANGE', 'BINOM.INV', 'BINOMDIST', 'BITAND', 'BITLSHIFT', 'BITOR', 'BITRSHIFT', 'BITXOR', 'CEILING', 'CEILINGMATH', 'CEILINGPRECISE', 'CHAR', 'CHISQ.DIST', 'CHISQ.DIST.RT', 'CHISQ.INV', 'CHISQ.INV.RT', 'CHOOSE', 'CHOOSE', 'CLEAN', 'CODE', 'COLUMN', 'COLUMNS', 'COMBIN', 'COMBINA', 'COMPLEX', 'CONCATENATE', 'CONFIDENCE', 'CONFIDENCE.NORM', 'CONFIDENCE.T', 'CONVERT', 'CORREL', 'COS', 'COSH', 'COT', 'COTH', 'COUNT', 'COUNTA', 'COUNTBLANK', 'COUNTIF', 'COUNTIFS', 'COUNTIN', 'COUNTUNIQUE', 'COVARIANCE.P', 'COVARIANCE.S', 'CSC', 'CSCH', 'CUMIPMT', 'CUMPRINC', 'DATE', 'DATEVALUE', 'DAY', 'DAYS', 'DAYS360', 'DB', 'DDB', 'DEC2BIN', 'DEC2HEX', 'DEC2OCT', 'DECIMAL', 'DEGREES', 'DELTA', 'DEVSQ', 'DIVIDE', 'DOLLAR', 'DOLLARDE', 'DOLLARFR', 'E', 'EDATE', 'EFFECT', 'EOMONTH', 'EQ', 'ERF', 'ERFC', 'EVEN', 'EXACT', 'EXP', 'EXPON.DIST', 'EXPONDIST', 'F.DIST', 'F.DIST.RT', 'F.INV', 'F.INV.RT', 'FACT', 'FACTDOUBLE', 'FALSE', 'FDIST', 'FDISTRT', 'FIND', 'FINV', 'FINVRT', 'FISHER', 'FISHERINV', 'FIXED', 'FLATTEN', 'FLOOR', 'FORECAST', 'FREQUENCY', 'FV', 'FVSCHEDULE', 'GAMMA', 'GAMMA.DIST', 'GAMMA.INV', 'GAMMADIST', 'GAMMAINV', 'GAMMALN', 'GAMMALN.PRECISE', 'GAUSS', 'GCD', 'GEOMEAN', 'GESTEP', 'GROWTH', 'GTE', 'HARMEAN', 'HEX2BIN', 'HEX2DEC', 'HEX2OCT', 'HOUR', 'HTML2TEXT', 'HYPGEOM.DIST', 'HYPGEOMDIST', 'IF', 'IMABS', 'IMAGINARY', 'IMARGUMENT', 'IMCONJUGATE', 'IMCOS', 'IMCOSH', 'IMCOT', 'IMCSC', 'IMCSCH', 'IMDIV', 'IMEXP', 'IMLN', 'IMLOG10', 'IMLOG2', 'IMPOWER', 'IMPRODUCT', 'IMREAL', 'IMSEC', 'IMSECH', 'IMSIN', 'IMSINH', 'IMSQRT', 'IMSUB', 'IMSUM', 'IMTAN', 'INT', 'INTERCEPT', 'INTERVAL', 'IPMT', 'IRR', 'ISBINARY', 'ISBLANK', 'ISEVEN', 'ISLOGICAL', 'ISNONTEXT', 'ISNUMBER', 'ISODD', 'ISODD', 'ISOWEEKNUM', 'ISPMT', 'ISTEXT', 'JOIN', 'KURT', 'LARGE', 'LCM', 'LEFT', 'LEN', 'LINEST', 'LN', 'LOG', 'LOG10', 'LOGEST', 'LOGNORM.DIST', 'LOGNORM.INV', 'LOGNORMDIST', 'LOGNORMINV', 'LOWER', 'LT', 'LTE', 'MATCH', 'MAX', 'MAXA', 'MEDIAN', 'MID', 'MIN', 'MINA', 'MINUS', 'MINUTE', 'MIRR', 'MOD', 'MODE.MULT', 'MODE.SNGL', 'MODEMULT', 'MODESNGL', 'MONTH', 'MROUND', 'MULTINOMIAL', 'MULTIPLY', 'NE', 'NEGBINOM.DIST', 'NEGBINOMDIST', 'NETWORKDAYS', 'NOMINAL', 'NORM.DIST', 'NORM.INV', 'NORM.S.DIST', 'NORM.S.INV', 'NORMDIST', 'NORMINV', 'NORMSDIST', 'NORMSINV', 'NOT', 'NOW', 'NPER', 'NPV', 'NUMBERS', 'NUMERAL', 'OCT2BIN', 'OCT2DEC', 'OCT2HEX', 'ODD', 'OR', 'PDURATION', 'PEARSON', 'PERCENTILEEXC', 'PERCENTILEINC', 'PERCENTRANKEXC', 'PERCENTRANKINC', 'PERMUT', 'PERMUTATIONA', 'PHI', 'PI', 'PMT', 'POISSON.DIST', 'POISSONDIST', 'POW', 'POWER', 'PPMT', 'PROB', 'PRODUCT', 'PROPER', 'PV', 'QUARTILE.EXC', 'QUARTILE.INC', 'QUARTILEEXC', 'QUARTILEINC', 'QUOTIENT', 'RADIANS', 'RAND', 'RANDBETWEEN', 'RANK.AVG', 'RANK.EQ', 'RANKAVG', 'RANKEQ', 'RATE', 'REFERENCE', 'REGEXEXTRACT', 'REGEXMATCH', 'REGEXREPLACE', 'REPLACE', 'REPT', 'RIGHT', 'ROMAN', 'ROUND', 'ROUNDDOWN', 'ROUNDUP', 'ROW', 'ROWS', 'RRI', 'RSQ', 'SEARCH', 'SEC', 'SECH', 'SECOND', 'SERIESSUM', 'SIGN', 'SIN', 'SINH', 'SKEW', 'SKEW.P', 'SKEWP', 'SLN', 'SLOPE', 'SMALL', 'SPLIT', 'SPLIT', 'SQRT', 'SQRTPI', 'STANDARDIZE', 'STDEV.P', 'STDEV.S', 'STDEVA', 'STDEVP', 'STDEVPA', 'STDEVS', 'STEYX', 'SUBSTITUTE', 'SUBTOTAL', 'SUM', 'SUMIF', 'SUMIFS', 'SUMPRODUCT', 'SUMSQ', 'SUMX2MY2', 'SUMX2PY2', 'SUMXMY2', 'SWITCH', 'SYD', 'T', 'T.DIST', 'T.DIST.2T', 'T.DIST.RT', 'T.INV', 'T.INV.2T', 'TAN', 'TANH', 'TBILLEQ', 'TBILLPRICE', 'TBILLYIELD', 'TDIST', 'TDIST2T', 'TDISTRT', 'TEXT', 'TIME', 'TIMEVALUE', 'TINV', 'TINV2T', 'TODAY', 'TRANSPOSE', 'TREND', 'TRIM', 'TRIMMEAN', 'TRUE', 'TRUNC', 'UNICHAR', 'UNICODE', 'UNIQUE', 'UPPER', 'VALUE', 'VAR.P', 'VAR.S', 'VARA', 'VARP', 'VARPA', 'VARS', 'WEEKDAY', 'WEEKNUM', 'WEIBULL.DIST', 'WEIBULLDIST', 'WORKDAY', 'XIRR', 'XNPV', 'XOR', 'YEAR', 'YEARFRAC'];
+var SUPPORTED_FORMULAS = ['ABS', 'ACCRINT', 'ACOS', 'ACOSH', 'ACOT', 'ACOTH', 'ADD', 'AGGREGATE', 'AND', 'ARABIC', 'ARGS2ARRAY', 'ASIN', 'ASINH', 'ATAN', 'ATAN2', 'ATANH', 'AVEDEV', 'AVERAGE', 'AVERAGEA', 'AVERAGEIF', 'AVERAGEIFS', 'BASE', 'BESSELI', 'BESSELJ', 'BESSELK', 'BESSELY', 'BETA.DIST', 'BETA.INV', 'BETADIST', 'BETAINV', 'BIN2DEC', 'BIN2HEX', 'BIN2OCT', 'BINOM.DIST', 'BINOM.DIST.RANGE', 'BINOM.INV', 'BINOMDIST', 'BITAND', 'BITLSHIFT', 'BITOR', 'BITRSHIFT', 'BITXOR', 'CEILING', 'CEILINGMATH', 'CEILINGPRECISE', 'CHAR', 'CHISQ.DIST', 'CHISQ.DIST.RT', 'CHISQ.INV', 'CHISQ.INV.RT', 'CHOOSE', 'CHOOSE', 'CLEAN', 'CODE', 'COLUMN', 'COLUMNS', 'COMBIN', 'COMBINA', 'COMPLEX', 'CONCATENATE', 'CONFIDENCE', 'CONFIDENCE.NORM', 'CONFIDENCE.T', 'CONVERT', 'CORREL', 'COS', 'COSH', 'COT', 'COTH', 'COUNT', 'COUNTA', 'COUNTBLANK', 'COUNTIF', 'COUNTIFS', 'COUNTIN', 'COUNTUNIQUE', 'COVARIANCE.P', 'COVARIANCE.S', 'CSC', 'CSCH', 'CUMIPMT', 'CUMPRINC', 'DATE', 'DATEVALUE', 'DAY', 'DAYS', 'DAYS360', 'DB', 'DDB', 'DEC2BIN', 'DEC2HEX', 'DEC2OCT', 'DECIMAL', 'DEGREES', 'DELTA', 'DEVSQ', 'DIVIDE', 'DOLLAR', 'DOLLARDE', 'DOLLARFR', 'E', 'EDATE', 'EFFECT', 'EOMONTH', 'EQ', 'ERF', 'ERFC', 'EVEN', 'EXACT', 'EXP', 'EXPON.DIST', 'EXPONDIST', 'F.DIST', 'F.DIST.RT', 'F.INV', 'F.INV.RT', 'FACT', 'FACTDOUBLE', 'FALSE', 'FDIST', 'FDISTRT', 'FIND', 'FINV', 'FINVRT', 'FISHER', 'FISHERINV', 'FIXED', 'FLATTEN', 'FLOOR', 'FORECAST', 'FREQUENCY', 'FV', 'FVSCHEDULE', 'GAMMA', 'GAMMA.DIST', 'GAMMA.INV', 'GAMMADIST', 'GAMMAINV', 'GAMMALN', 'GAMMALN.PRECISE', 'GAUSS', 'GCD', 'GEOMEAN', 'GESTEP', 'GROWTH', 'GTE', 'HARMEAN', 'HEX2BIN', 'HEX2DEC', 'HEX2OCT', 'HOUR', 'HTML2TEXT', 'HYPGEOM.DIST', 'HYPGEOMDIST', 'IF', 'IFERROR', 'IMABS', 'IMAGINARY', 'IMARGUMENT', 'IMCONJUGATE', 'IMCOS', 'IMCOSH', 'IMCOT', 'IMCSC', 'IMCSCH', 'IMDIV', 'IMEXP', 'IMLN', 'IMLOG10', 'IMLOG2', 'IMPOWER', 'IMPRODUCT', 'IMREAL', 'IMSEC', 'IMSECH', 'IMSIN', 'IMSINH', 'IMSQRT', 'IMSUB', 'IMSUM', 'IMTAN', 'INDEX', 'INT', 'INTERCEPT', 'INTERVAL', 'IPMT', 'IRR', 'ISBINARY', 'ISBLANK', 'ISEVEN', 'ISLOGICAL', 'ISNONTEXT', 'ISNUMBER', 'ISODD', 'ISODD', 'ISOWEEKNUM', 'ISPMT', 'ISTEXT', 'ISERROR', 'JOIN', 'KURT', 'LARGE', 'LCM', 'LEFT', 'LEN', 'LINEST', 'LN', 'LOG', 'LOG10', 'LOGEST', 'LOGNORM.DIST', 'LOGNORM.INV', 'LOGNORMDIST', 'LOGNORMINV', 'LOWER', 'LT', 'LTE', 'MATCH', 'MAX', 'MAXA', 'MEDIAN', 'MID', 'MIN', 'MINA', 'MINUS', 'MINUTE', 'MIRR', 'MOD', 'MODE.MULT', 'MODE.SNGL', 'MODEMULT', 'MODESNGL', 'MONTH', 'MROUND', 'MULTINOMIAL', 'MULTIPLY', 'NE', 'NEGBINOM.DIST', 'NEGBINOMDIST', 'NETWORKDAYS', 'NOMINAL', 'NORM.DIST', 'NORM.INV', 'NORM.S.DIST', 'NORM.S.INV', 'NORMDIST', 'NORMINV', 'NORMSDIST', 'NORMSINV', 'NOT', 'NOW', 'NPER', 'NPV', 'NUMBERS', 'NUMERAL', 'OCT2BIN', 'OCT2DEC', 'OCT2HEX', 'ODD', 'OR', 'PDURATION', 'PEARSON', 'PERCENTILEEXC', 'PERCENTILEINC', 'PERCENTRANKEXC', 'PERCENTRANKINC', 'PERMUT', 'PERMUTATIONA', 'PHI', 'PI', 'PMT', 'POISSON.DIST', 'POISSONDIST', 'POW', 'POWER', 'PPMT', 'PROB', 'PRODUCT', 'PROPER', 'PV', 'QUARTILE.EXC', 'QUARTILE.INC', 'QUARTILEEXC', 'QUARTILEINC', 'QUOTIENT', 'RADIANS', 'RAND', 'RANDBETWEEN', 'RANK.AVG', 'RANK.EQ', 'RANKAVG', 'RANKEQ', 'RATE', 'REFERENCE', 'REGEXEXTRACT', 'REGEXMATCH', 'REGEXREPLACE', 'REPLACE', 'REPT', 'RIGHT', 'ROMAN', 'ROUND', 'ROUNDDOWN', 'ROUNDUP', 'ROW', 'ROWS', 'RRI', 'RSQ', 'SEARCH', 'SEC', 'SECH', 'SECOND', 'SERIESSUM', 'SIGN', 'SIN', 'SINH', 'SKEW', 'SKEW.P', 'SKEWP', 'SLN', 'SLOPE', 'SMALL', 'SPLIT', 'SPLIT', 'SQRT', 'SQRTPI', 'STANDARDIZE', 'STDEV.P', 'STDEV.S', 'STDEVA', 'STDEVP', 'STDEVPA', 'STDEVS', 'STEYX', 'SUBSTITUTE', 'SUBTOTAL', 'SUM', 'SUMIF', 'SUMIFS', 'SUMPRODUCT', 'SUMSQ', 'SUMX2MY2', 'SUMX2PY2', 'SUMXMY2', 'SWITCH', 'SYD', 'T', 'T.DIST', 'T.DIST.2T', 'T.DIST.RT', 'T.INV', 'T.INV.2T', 'TAN', 'TANH', 'TBILLEQ', 'TBILLPRICE', 'TBILLYIELD', 'TDIST', 'TDIST2T', 'TDISTRT', 'TEXT', 'TIME', 'TIMEVALUE', 'TINV', 'TINV2T', 'TODAY', 'TRANSPOSE', 'TREND', 'TRIM', 'TRIMMEAN', 'TRUE', 'TRUNC', 'UNICHAR', 'UNICODE', 'UNIQUE', 'UPPER', 'VALUE', 'VAR.P', 'VAR.S', 'VARA', 'VARP', 'VARPA', 'VARS', 'VLOOKUP', 'WEEKDAY', 'WEEKNUM', 'WEIBULL.DIST', 'WEIBULLDIST', 'WORKDAY', 'XIRR', 'XNPV', 'XOR', 'YEAR', 'YEARFRAC'];
 
 exports['default'] = SUPPORTED_FORMULAS;
 
@@ -12397,7 +12241,7 @@ function columnIndexToLabel(column) {
   return result.toUpperCase();
 }
 
-var LABEL_EXTRACT_REGEXP = /^(([A-Za-z0-9\s]+)!)?([$])?([A-Za-z]+)([$])?([0-9]+)$/;
+var LABEL_EXTRACT_REGEXP = /^('?([-&A-Za-z0-9\s]+)'?!)?([$])?([A-Za-z]+)?([$])?([0-9]+)?$/;
 
 /**
  * Extract cell coordinates.
@@ -12421,12 +12265,12 @@ function extractLabel(label) {
   return [{
     index: rowLabelToIndex(row),
     label: row,
-    isAbsolute: rowAbs === '$'
+    isAbsolute: column ? rowAbs === '$' : columnAbs === '$' // in case it is only a row, the $ sign will be parsed as the column's
   }, {
     index: columnLabelToIndex(column),
-    label: column.toUpperCase(),
+    label: column ? column.toUpperCase() : '',
     isAbsolute: columnAbs === '$'
-  }, sheet];
+  }, sheet ? sheet.replace(/^'/, '').replace(/'$/, '') : undefined];
 }
 
 /**
@@ -12437,8 +12281,8 @@ function extractLabel(label) {
  * @returns {String} Returns cell label.
  */
 function toLabel(row, column) {
-  var rowLabel = (row.isAbsolute ? '$' : '') + rowIndexToLabel(row.index);
-  var columnLabel = (column.isAbsolute ? '$' : '') + columnIndexToLabel(column.index);
+  var rowLabel = (row && row.isAbsolute ? '$' : '') + rowIndexToLabel(row ? row.index : -1);
+  var columnLabel = (column && column.isAbsolute ? '$' : '') + columnIndexToLabel(column ? column.index : -1);
 
   return columnLabel + rowLabel;
 }
@@ -12555,6 +12399,12 @@ var Parser = function (_Emitter) {
       },
       rangeValue: function rangeValue(start, end) {
         return _this._callRangeValue(start, end);
+      },
+      columnRangeValue: function columnRangeValue(range) {
+        return _this._callColumnRangeValue(range);
+      },
+      rowRangeValue: function rowRangeValue(range) {
+        return _this._callRowRangeValue(range);
       }
     };
     _this.variables = Object.create(null);
@@ -12583,6 +12433,7 @@ var Parser = function (_Emitter) {
         result = this.parser.parse(expression);
       }
     } catch (ex) {
+      console.log('got error from parser', ex);
       var message = (0, _error2['default'])(ex.message);
 
       if (message) {
@@ -12695,6 +12546,8 @@ var Parser = function (_Emitter) {
   Parser.prototype._callFunction = function _callFunction(name) {
     var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 
+
+    // console.log('calling function ' + name);
     var fn = this.getFunction(name);
     var value = void 0;
 
@@ -12736,6 +12589,105 @@ var Parser = function (_Emitter) {
   };
 
   /**
+   * Retrieve entire columns
+   * @param {String} range range reference. e.g. Sheet1!$C:$E , D:D, A:$A.
+   * */
+
+
+  Parser.prototype._callColumnRangeValue = function _callColumnRangeValue(range) {
+    var _range$split = range.split(':'),
+        startLabel = _range$split[0],
+        endLabel = _range$split[1];
+
+    var _extractLabel2 = (0, _cell.extractLabel)(startLabel),
+        startColumn = _extractLabel2[1],
+        startSheet = _extractLabel2[2];
+
+    var _extractLabel3 = (0, _cell.extractLabel)(endLabel),
+        endColumn = _extractLabel3[1],
+        endSheet = _extractLabel3[2];
+
+    var startCell = {};
+    var endCell = {};
+
+    if (startColumn.index <= endColumn.index) {
+      startCell.column = startColumn;
+      endCell.column = endColumn;
+    } else {
+      startCell.column = endColumn;
+      endCell.column = startColumn;
+    }
+
+    startCell.label = (0, _cell.toLabel)(startCell.row, startCell.column);
+    endCell.label = (0, _cell.toLabel)(endCell.row, endCell.column);
+
+    if (startSheet) {
+      startCell.sheet = startSheet;
+      endCell.sheet = startSheet;
+    }
+
+    var value = [];
+
+    this.emit('callColumnRangeValue', startCell, endCell, function () {
+      var _value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+      value = _value;
+    });
+
+    return value;
+  };
+
+  /**
+   * Retrieve entire rows
+   * @param {String} range range reference. e.g. Sheet1!$1:$10 , 2:2, 3:$3.
+   * */
+
+
+  Parser.prototype._callRowRangeValue = function _callRowRangeValue(range) {
+    var _range$split2 = range.split(':'),
+        startLabel = _range$split2[0],
+        endLabel = _range$split2[1];
+
+    var _extractLabel4 = (0, _cell.extractLabel)(startLabel),
+        startRow = _extractLabel4[0],
+        startColumn = _extractLabel4[1],
+        startSheet = _extractLabel4[2];
+
+    var _extractLabel5 = (0, _cell.extractLabel)(endLabel),
+        endRow = _extractLabel5[0],
+        endColumn = _extractLabel5[1];
+
+    var startCell = {};
+    var endCell = {};
+
+    if (startRow.index <= endRow.index) {
+      startCell.row = startRow;
+      endCell.row = endRow;
+    } else {
+      startCell.row = endRow;
+      endCell.row = startRow;
+    }
+
+    startCell.label = (0, _cell.toLabel)(startCell.row, startCell.column);
+    endCell.label = (0, _cell.toLabel)(endCell.row, endCell.column);
+
+    if (startSheet) {
+      startCell.sheet = startSheet;
+      endCell.sheet = startSheet;
+    }
+
+    var value = [];
+
+    this.emit('callRowRangeValue', startCell, endCell, function () {
+      var _value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+      value = _value;
+    });
+
+    return value;
+  };
+
+  /**
    * Retrieve value by its label (`B3:A1`, `B$3:A1`, `B$3:$A1`, `$B$3:A$1`).
    *
    * @param {String} startLabel Coordinates of the first cell.
@@ -12746,15 +12698,15 @@ var Parser = function (_Emitter) {
 
 
   Parser.prototype._callRangeValue = function _callRangeValue(startLabel, endLabel) {
-    var _extractLabel2 = (0, _cell.extractLabel)(startLabel),
-        startRow = _extractLabel2[0],
-        startColumn = _extractLabel2[1],
-        startSheet = _extractLabel2[2];
+    var _extractLabel6 = (0, _cell.extractLabel)(startLabel),
+        startRow = _extractLabel6[0],
+        startColumn = _extractLabel6[1],
+        startSheet = _extractLabel6[2];
 
-    var _extractLabel3 = (0, _cell.extractLabel)(endLabel),
-        endRow = _extractLabel3[0],
-        endColumn = _extractLabel3[1],
-        endSheet = _extractLabel3[2];
+    var _extractLabel7 = (0, _cell.extractLabel)(endLabel),
+        endRow = _extractLabel7[0],
+        endColumn = _extractLabel7[1],
+        endSheet = _extractLabel7[2];
 
     var startCell = {};
     var endCell = {};
@@ -12780,9 +12732,7 @@ var Parser = function (_Emitter) {
 
     if (startSheet) {
       startCell.sheet = startSheet;
-    }
-    if (endSheet) {
-      endCell.sheet = endSheet;
+      endCell.sheet = startSheet;
     }
 
     var value = [];
@@ -12986,6 +12936,7 @@ function evaluateByOperator(operator) {
  * @param {Function} func Logic to register for this symbol.
  */
 function registerOperation(symbol, func) {
+  // console.log('registering operation', symbol, func);
   if (!Array.isArray(symbol)) {
     symbol = [symbol.toUpperCase()];
   }
@@ -13200,20 +13151,7 @@ func.SYMBOL = SYMBOL;
 /* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var categories = [
-  __webpack_require__(26),
-  __webpack_require__(29),
-  __webpack_require__(13),
-  __webpack_require__(30),
-  __webpack_require__(4),
-  __webpack_require__(6),
-  __webpack_require__(8),
-  __webpack_require__(31),
-  __webpack_require__(7),
-  __webpack_require__(32),
-  __webpack_require__(5),
-  __webpack_require__(12)
-];
+var categories = [__webpack_require__(26), __webpack_require__(29), __webpack_require__(13), __webpack_require__(30), __webpack_require__(4), __webpack_require__(6), __webpack_require__(8), __webpack_require__(31), __webpack_require__(7), __webpack_require__(32), __webpack_require__(5), __webpack_require__(12)];
 
 for (var c in categories) {
   var category = categories[c];
@@ -13221,7 +13159,6 @@ for (var c in categories) {
     exports[f] = exports[f] || category[f];
   }
 }
-
 
 /***/ }),
 /* 26 */
@@ -13314,7 +13251,6 @@ exports.WEIBULL = set(statistical.WEIBULL.DIST, statistical.WEIBULL);
 exports.WEIBULLDIST = statistical.WEIBULL.DIST;
 exports.WORKDAYINTL = dateTime.WORKDAY.INTL;
 exports.ZTEST = statistical.Z.TEST;
-
 
 /***/ }),
 /* 27 */
@@ -13549,7 +13485,7 @@ var utils = __webpack_require__(1);
 function compact(array) {
   var result = [];
 
-  utils.arrayEach(array, function(value) {
+  utils.arrayEach(array, function (value) {
     if (value) {
       result.push(value);
     }
@@ -13558,10 +13494,10 @@ function compact(array) {
   return result;
 }
 
-exports.FINDFIELD = function(database, title) {
+exports.FINDFIELD = function (database, title) {
   var index = null;
 
-  utils.arrayEach(database, function(value, i) {
+  utils.arrayEach(database, function (value, i) {
     if (value[0] === title) {
       index = i;
       return false;
@@ -13591,7 +13527,7 @@ function findResultIndex(database, criterias) {
   for (var k = 1; k < database.length; ++k) {
     for (var l = 1; l < database[k].length; ++l) {
       var currentCriteriaResult = false;
-      var hasMatchingCriteria   = false;
+      var hasMatchingCriteria = false;
       for (var j = 0; j < criterias.length; ++j) {
         var criteria = criterias[j];
         if (criteria.length < maxCriteriaLength) {
@@ -13604,7 +13540,7 @@ function findResultIndex(database, criterias) {
         }
         hasMatchingCriteria = true;
         for (var p = 1; p < criteria.length; ++p) {
-          currentCriteriaResult = currentCriteriaResult || eval(database[k][l] + criteria[p]);  // jshint ignore:line
+          currentCriteriaResult = currentCriteriaResult || eval(database[k][l] + criteria[p]); // jshint ignore:line
         }
       }
       if (hasMatchingCriteria) {
@@ -13624,9 +13560,9 @@ function findResultIndex(database, criterias) {
 }
 
 // Database functions
-exports.DAVERAGE = function(database, field, criteria) {
+exports.DAVERAGE = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
   var resultIndexes = findResultIndex(database, criteria);
@@ -13640,16 +13576,16 @@ exports.DAVERAGE = function(database, field, criteria) {
   }
   var sum = 0;
 
-  utils.arrayEach(resultIndexes, function(value) {
+  utils.arrayEach(resultIndexes, function (value) {
     sum += targetFields[value];
   });
 
   return resultIndexes.length === 0 ? error.div0 : sum / resultIndexes.length;
 };
 
-exports.DCOUNT = function(database, field, criteria) {
+exports.DCOUNT = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
   var resultIndexes = findResultIndex(database, criteria);
@@ -13664,16 +13600,16 @@ exports.DCOUNT = function(database, field, criteria) {
 
   var targetValues = [];
 
-  utils.arrayEach(resultIndexes, function(value) {
+  utils.arrayEach(resultIndexes, function (value) {
     targetValues.push(targetFields[value]);
   });
 
   return stats.COUNT(targetValues);
 };
 
-exports.DCOUNTA = function(database, field, criteria) {
+exports.DCOUNTA = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
 
@@ -13689,16 +13625,16 @@ exports.DCOUNTA = function(database, field, criteria) {
 
   var targetValues = [];
 
-  utils.arrayEach(resultIndexes, function(value) {
+  utils.arrayEach(resultIndexes, function (value) {
     targetValues.push(targetFields[value]);
   });
 
   return stats.COUNTA(targetValues);
 };
 
-exports.DGET = function(database, field, criteria) {
+exports.DGET = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
 
@@ -13725,9 +13661,9 @@ exports.DGET = function(database, field, criteria) {
   return targetFields[resultIndexes[0]];
 };
 
-exports.DMAX = function(database, field, criteria) {
+exports.DMAX = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
   var resultIndexes = findResultIndex(database, criteria);
@@ -13742,7 +13678,7 @@ exports.DMAX = function(database, field, criteria) {
 
   var maxValue = targetFields[resultIndexes[0]];
 
-  utils.arrayEach(resultIndexes, function(value) {
+  utils.arrayEach(resultIndexes, function (value) {
     if (maxValue < targetFields[value]) {
       maxValue = targetFields[value];
     }
@@ -13751,9 +13687,9 @@ exports.DMAX = function(database, field, criteria) {
   return maxValue;
 };
 
-exports.DMIN = function(database, field, criteria) {
+exports.DMIN = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
 
@@ -13769,7 +13705,7 @@ exports.DMIN = function(database, field, criteria) {
 
   var minValue = targetFields[resultIndexes[0]];
 
-  utils.arrayEach(resultIndexes, function(value) {
+  utils.arrayEach(resultIndexes, function (value) {
     if (minValue > targetFields[value]) {
       minValue = targetFields[value];
     }
@@ -13778,9 +13714,9 @@ exports.DMIN = function(database, field, criteria) {
   return minValue;
 };
 
-exports.DPRODUCT = function(database, field, criteria) {
+exports.DPRODUCT = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
 
@@ -13796,23 +13732,23 @@ exports.DPRODUCT = function(database, field, criteria) {
 
   var targetValues = [];
 
-  utils.arrayEach(resultIndexes, function(value) {
+  utils.arrayEach(resultIndexes, function (value) {
     targetValues.push(targetFields[value]);
   });
   targetValues = compact(targetValues);
 
   var result = 1;
 
-  utils.arrayEach(targetValues, function(value) {
+  utils.arrayEach(targetValues, function (value) {
     result *= value;
   });
 
   return result;
 };
 
-exports.DSTDEV = function(database, field, criteria) {
+exports.DSTDEV = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
   var resultIndexes = findResultIndex(database, criteria);
@@ -13826,7 +13762,7 @@ exports.DSTDEV = function(database, field, criteria) {
   }
   var targetValues = [];
 
-  utils.arrayEach(resultIndexes, function(value) {
+  utils.arrayEach(resultIndexes, function (value) {
     targetValues.push(targetFields[value]);
   });
   targetValues = compact(targetValues);
@@ -13834,9 +13770,9 @@ exports.DSTDEV = function(database, field, criteria) {
   return stats.STDEV.S(targetValues);
 };
 
-exports.DSTDEVP = function(database, field, criteria) {
+exports.DSTDEVP = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
   var resultIndexes = findResultIndex(database, criteria);
@@ -13851,7 +13787,7 @@ exports.DSTDEVP = function(database, field, criteria) {
 
   var targetValues = [];
 
-  utils.arrayEach(resultIndexes, function(value) {
+  utils.arrayEach(resultIndexes, function (value) {
     targetValues.push(targetFields[value]);
   });
   targetValues = compact(targetValues);
@@ -13859,9 +13795,9 @@ exports.DSTDEVP = function(database, field, criteria) {
   return stats.STDEV.P(targetValues);
 };
 
-exports.DSUM = function(database, field, criteria) {
+exports.DSUM = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
   var resultIndexes = findResultIndex(database, criteria);
@@ -13876,16 +13812,16 @@ exports.DSUM = function(database, field, criteria) {
 
   var targetValues = [];
 
-  utils.arrayEach(resultIndexes, function(value) {
+  utils.arrayEach(resultIndexes, function (value) {
     targetValues.push(targetFields[value]);
   });
 
   return maths.SUM(targetValues);
 };
 
-exports.DVAR = function(database, field, criteria) {
+exports.DVAR = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
   var resultIndexes = findResultIndex(database, criteria);
@@ -13899,16 +13835,16 @@ exports.DVAR = function(database, field, criteria) {
   }
   var targetValues = [];
 
-  utils.arrayEach(resultIndexes, function(value) {
+  utils.arrayEach(resultIndexes, function (value) {
     targetValues.push(targetFields[value]);
   });
 
   return stats.VAR.S(targetValues);
 };
 
-exports.DVARP = function(database, field, criteria) {
+exports.DVARP = function (database, field, criteria) {
   // Return error if field is not a number and not a string
-  if (isNaN(field) && (typeof field !== "string")) {
+  if (isNaN(field) && typeof field !== "string") {
     return error.value;
   }
   var resultIndexes = findResultIndex(database, criteria);
@@ -13922,13 +13858,12 @@ exports.DVARP = function(database, field, criteria) {
   }
   var targetValues = [];
 
-  utils.arrayEach(resultIndexes, function(value) {
+  utils.arrayEach(resultIndexes, function (value) {
     targetValues.push(targetFields[value]);
   });
 
   return stats.VAR.P(targetValues);
 };
-
 
 /***/ }),
 /* 30 */
@@ -13938,7 +13873,7 @@ var error = __webpack_require__(0);
 var utils = __webpack_require__(1);
 var information = __webpack_require__(7);
 
-exports.AND = function() {
+exports.AND = function () {
   var args = utils.flatten(arguments);
   var result = true;
   for (var i = 0; i < args.length; i++) {
@@ -13949,7 +13884,7 @@ exports.AND = function() {
   return result;
 };
 
-exports.CHOOSE = function() {
+exports.CHOOSE = function () {
   if (arguments.length < 2) {
     return error.na;
   }
@@ -13966,30 +13901,32 @@ exports.CHOOSE = function() {
   return arguments[index];
 };
 
-exports.FALSE = function() {
+exports.FALSE = function () {
   return false;
 };
 
-exports.IF = function(test, then_value, otherwise_value) {
+exports.IF = function (test, then_value, otherwise_value) {
+  // console.log(arguments);
+  // console.log('IF function', test, 'then', then_value, 'otherwise', otherwise_value);
   return test ? then_value : otherwise_value;
 };
 
-exports.IFERROR = function(value, valueIfError) {
+exports.IFERROR = function (value, valueIfError) {
   if (information.ISERROR(value)) {
     return valueIfError;
   }
   return value;
 };
 
-exports.IFNA = function(value, value_if_na) {
+exports.IFNA = function (value, value_if_na) {
   return value === error.na ? value_if_na : value;
 };
 
-exports.NOT = function(logical) {
+exports.NOT = function (logical) {
   return !logical;
 };
 
-exports.OR = function() {
+exports.OR = function () {
   var args = utils.flatten(arguments);
   var result = false;
   for (var i = 0; i < args.length; i++) {
@@ -14000,11 +13937,11 @@ exports.OR = function() {
   return result;
 };
 
-exports.TRUE = function() {
+exports.TRUE = function () {
   return true;
 };
 
-exports.XOR = function() {
+exports.XOR = function () {
   var args = utils.flatten(arguments);
   var result = 0;
   for (var i = 0; i < args.length; i++) {
@@ -14012,13 +13949,13 @@ exports.XOR = function() {
       result++;
     }
   }
-  return (Math.floor(Math.abs(result)) & 1) ? true : false;
+  return Math.floor(Math.abs(result)) & 1 ? true : false;
 };
 
 exports.SWITCH = function () {
   var result;
 
-  if (arguments.length > 0)  {
+  if (arguments.length > 0) {
     var targetValue = arguments[0];
     var argc = arguments.length - 1;
     var switchCount = Math.floor(argc / 2);
@@ -14046,7 +13983,6 @@ exports.SWITCH = function () {
   return result;
 };
 
-
 /***/ }),
 /* 31 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -14060,13 +13996,13 @@ function validDate(d) {
 }
 
 function ensureDate(d) {
-  return (d instanceof Date)?d:new Date(d);
+  return d instanceof Date ? d : new Date(d);
 }
 
-exports.ACCRINT = function(issue, first, settlement, rate, par, frequency, basis) {
+exports.ACCRINT = function (issue, first, settlement, rate, par, frequency, basis) {
   // Return error if either date is invalid
-  issue      = ensureDate(issue);
-  first      = ensureDate(first);
+  issue = ensureDate(issue);
+  first = ensureDate(first);
   settlement = ensureDate(settlement);
   if (!validDate(issue) || !validDate(first) || !validDate(settlement)) {
     return error.value;
@@ -14093,7 +14029,7 @@ exports.ACCRINT = function(issue, first, settlement, rate, par, frequency, basis
   }
 
   // Set default values
-  par   = par   || 0;
+  par = par || 0;
   basis = basis || 0;
 
   // Compute accrued interest
@@ -14101,51 +14037,51 @@ exports.ACCRINT = function(issue, first, settlement, rate, par, frequency, basis
 };
 
 // TODO
-exports.ACCRINTM = function() {
+exports.ACCRINTM = function () {
   throw new Error('ACCRINTM is not implemented');
 };
 
 // TODO
-exports.AMORDEGRC = function() {
+exports.AMORDEGRC = function () {
   throw new Error('AMORDEGRC is not implemented');
 };
 
 // TODO
-exports.AMORLINC = function() {
+exports.AMORLINC = function () {
   throw new Error('AMORLINC is not implemented');
 };
 
 // TODO
-exports.COUPDAYBS = function() {
+exports.COUPDAYBS = function () {
   throw new Error('COUPDAYBS is not implemented');
 };
 
 // TODO
-exports.COUPDAYS = function() {
+exports.COUPDAYS = function () {
   throw new Error('COUPDAYS is not implemented');
 };
 
 // TODO
-exports.COUPDAYSNC = function() {
+exports.COUPDAYSNC = function () {
   throw new Error('COUPDAYSNC is not implemented');
 };
 
 // TODO
-exports.COUPNCD = function() {
+exports.COUPNCD = function () {
   throw new Error('COUPNCD is not implemented');
 };
 
 // TODO
-exports.COUPNUM = function() {
+exports.COUPNUM = function () {
   throw new Error('COUPNUM is not implemented');
 };
 
 // TODO
-exports.COUPPCD = function() {
+exports.COUPPCD = function () {
   throw new Error('COUPPCD is not implemented');
 };
 
-exports.CUMIPMT = function(rate, periods, value, start, end, type) {
+exports.CUMIPMT = function (rate, periods, value, start, end, type) {
   // Credits: algorithm inspired by Apache OpenOffice
   // Credits: Hannes Stiebitzhofer for the translations of function and variable names
   // Requires exports.FV() and exports.PMT() from exports.js [http://stoic.com/exports/]
@@ -14196,7 +14132,7 @@ exports.CUMIPMT = function(rate, periods, value, start, end, type) {
   return interest;
 };
 
-exports.CUMPRINC = function(rate, periods, value, start, end, type) {
+exports.CUMPRINC = function (rate, periods, value, start, end, type) {
   // Credits: algorithm inspired by Apache OpenOffice
   // Credits: Hannes Stiebitzhofer for the translations of function and variable names
 
@@ -14245,9 +14181,9 @@ exports.CUMPRINC = function(rate, periods, value, start, end, type) {
   return principal;
 };
 
-exports.DB = function(cost, salvage, life, period, month) {
+exports.DB = function (cost, salvage, life, period, month) {
   // Initialize month
-  month = (month === undefined) ? 12 : month;
+  month = month === undefined ? 12 : month;
 
   cost = utils.parseNumber(cost);
   salvage = utils.parseNumber(salvage);
@@ -14287,7 +14223,7 @@ exports.DB = function(cost, salvage, life, period, month) {
   // Compute total depreciation
   var total = initial;
   var current = 0;
-  var ceiling = (period === life) ? life - 1 : period;
+  var ceiling = period === life ? life - 1 : period;
   for (var i = 2; i <= ceiling; i++) {
     current = (cost - total) * rate;
     total += current;
@@ -14305,9 +14241,9 @@ exports.DB = function(cost, salvage, life, period, month) {
   }
 };
 
-exports.DDB = function(cost, salvage, life, period, factor) {
+exports.DDB = function (cost, salvage, life, period, factor) {
   // Initialize factor
-  factor = (factor === undefined) ? 2 : factor;
+  factor = factor === undefined ? 2 : factor;
 
   cost = utils.parseNumber(cost);
   salvage = utils.parseNumber(salvage);
@@ -14337,7 +14273,7 @@ exports.DDB = function(cost, salvage, life, period, factor) {
   var total = 0;
   var current = 0;
   for (var i = 1; i <= period; i++) {
-    current = Math.min((cost - total) * (factor / life), (cost - salvage - total));
+    current = Math.min((cost - total) * (factor / life), cost - salvage - total);
     total += current;
   }
 
@@ -14346,11 +14282,11 @@ exports.DDB = function(cost, salvage, life, period, factor) {
 };
 
 // TODO
-exports.DISC = function() {
+exports.DISC = function () {
   throw new Error('DISC is not implemented');
 };
 
-exports.DOLLARDE = function(dollar, fraction) {
+exports.DOLLARDE = function (dollar, fraction) {
   // Credits: algorithm inspired by Apache OpenOffice
 
   dollar = utils.parseNumber(dollar);
@@ -14376,7 +14312,7 @@ exports.DOLLARDE = function(dollar, fraction) {
   var result = parseInt(dollar, 10);
 
   // Add decimal part
-  result += (dollar % 1) * Math.pow(10, Math.ceil(Math.log(fraction) / Math.LN10)) / fraction;
+  result += dollar % 1 * Math.pow(10, Math.ceil(Math.log(fraction) / Math.LN10)) / fraction;
 
   // Round result
   var power = Math.pow(10, Math.ceil(Math.log(fraction) / Math.LN2) + 1);
@@ -14386,7 +14322,7 @@ exports.DOLLARDE = function(dollar, fraction) {
   return result;
 };
 
-exports.DOLLARFR = function(dollar, fraction) {
+exports.DOLLARFR = function (dollar, fraction) {
   // Credits: algorithm inspired by Apache OpenOffice
 
   dollar = utils.parseNumber(dollar);
@@ -14412,18 +14348,18 @@ exports.DOLLARFR = function(dollar, fraction) {
   var result = parseInt(dollar, 10);
 
   // Add decimal part
-  result += (dollar % 1) * Math.pow(10, -Math.ceil(Math.log(fraction) / Math.LN10)) * fraction;
+  result += dollar % 1 * Math.pow(10, -Math.ceil(Math.log(fraction) / Math.LN10)) * fraction;
 
   // Return converted dollar price
   return result;
 };
 
 // TODO
-exports.DURATION = function() {
+exports.DURATION = function () {
   throw new Error('DURATION is not implemented');
 };
 
-exports.EFFECT = function(rate, periods) {
+exports.EFFECT = function (rate, periods) {
   rate = utils.parseNumber(rate);
   periods = utils.parseNumber(periods);
   if (utils.anyIsError(rate, periods)) {
@@ -14442,7 +14378,7 @@ exports.EFFECT = function(rate, periods) {
   return Math.pow(1 + rate / periods, periods) - 1;
 };
 
-exports.FV = function(rate, periods, payment, value, type) {
+exports.FV = function (rate, periods, payment, value, type) {
   // Credits: algorithm inspired by Apache OpenOffice
 
   value = value || 0;
@@ -14472,7 +14408,7 @@ exports.FV = function(rate, periods, payment, value, type) {
   return -result;
 };
 
-exports.FVSCHEDULE = function(principal, schedule) {
+exports.FVSCHEDULE = function (principal, schedule) {
   principal = utils.parseNumber(principal);
   schedule = utils.parseNumberArray(utils.flatten(schedule));
   if (utils.anyIsError(principal, schedule)) {
@@ -14493,11 +14429,11 @@ exports.FVSCHEDULE = function(principal, schedule) {
 };
 
 // TODO
-exports.INTRATE = function() {
+exports.INTRATE = function () {
   throw new Error('INTRATE is not implemented');
 };
 
-exports.IPMT = function(rate, period, periods, present, future, type) {
+exports.IPMT = function (rate, period, periods, present, future, type) {
   // Credits: algorithm inspired by Apache OpenOffice
 
   future = future || 0;
@@ -14536,7 +14472,7 @@ exports.IPMT = function(rate, period, periods, present, future, type) {
   return interest * rate;
 };
 
-exports.IRR = function(values, guess) {
+exports.IRR = function (values, guess) {
   // Credits: algorithm inspired by Apache OpenOffice
 
   guess = guess || 0;
@@ -14548,7 +14484,7 @@ exports.IRR = function(values, guess) {
   }
 
   // Calculates the resulting amount
-  var irrResult = function(values, dates, rate) {
+  var irrResult = function (values, dates, rate) {
     var r = rate + 1;
     var result = values[0];
     for (var i = 1; i < values.length; i++) {
@@ -14558,7 +14494,7 @@ exports.IRR = function(values, guess) {
   };
 
   // Calculates the first derivation
-  var irrResultDeriv = function(values, dates, rate) {
+  var irrResultDeriv = function (values, dates, rate) {
     var r = rate + 1;
     var result = 0;
     for (var i = 1; i < values.length; i++) {
@@ -14573,7 +14509,7 @@ exports.IRR = function(values, guess) {
   var positive = false;
   var negative = false;
   for (var i = 0; i < values.length; i++) {
-    dates[i] = (i === 0) ? 0 : dates[i - 1] + 365;
+    dates[i] = i === 0 ? 0 : dates[i - 1] + 365;
     if (values[i] > 0) {
       positive = true;
     }
@@ -14588,7 +14524,7 @@ exports.IRR = function(values, guess) {
   }
 
   // Initialize guess and resultRate
-  guess = (guess === undefined) ? 0.1 : guess;
+  guess = guess === undefined ? 0.1 : guess;
   var resultRate = guess;
 
   // Set maximum epsilon for end of iteration
@@ -14602,14 +14538,14 @@ exports.IRR = function(values, guess) {
     newRate = resultRate - resultValue / irrResultDeriv(values, dates, resultRate);
     epsRate = Math.abs(newRate - resultRate);
     resultRate = newRate;
-    contLoop = (epsRate > epsMax) && (Math.abs(resultValue) > epsMax);
+    contLoop = epsRate > epsMax && Math.abs(resultValue) > epsMax;
   } while (contLoop);
 
   // Return internal rate of return
   return resultRate;
 };
 
-exports.ISPMT = function(rate, period, periods, value) {
+exports.ISPMT = function (rate, period, periods, value) {
   rate = utils.parseNumber(rate);
   period = utils.parseNumber(period);
   periods = utils.parseNumber(periods);
@@ -14623,11 +14559,11 @@ exports.ISPMT = function(rate, period, periods, value) {
 };
 
 // TODO
-exports.MDURATION = function() {
+exports.MDURATION = function () {
   throw new Error('MDURATION is not implemented');
 };
 
-exports.MIRR = function(values, finance_rate, reinvest_rate) {
+exports.MIRR = function (values, finance_rate, reinvest_rate) {
   values = utils.parseNumberArray(utils.flatten(values));
   finance_rate = utils.parseNumber(finance_rate);
   reinvest_rate = utils.parseNumber(reinvest_rate);
@@ -14655,7 +14591,7 @@ exports.MIRR = function(values, finance_rate, reinvest_rate) {
   return Math.pow(num / den, 1 / (n - 1)) - 1;
 };
 
-exports.NOMINAL = function(rate, periods) {
+exports.NOMINAL = function (rate, periods) {
   rate = utils.parseNumber(rate);
   periods = utils.parseNumber(periods);
   if (utils.anyIsError(rate, periods)) {
@@ -14674,9 +14610,9 @@ exports.NOMINAL = function(rate, periods) {
   return (Math.pow(rate + 1, 1 / periods) - 1) * periods;
 };
 
-exports.NPER = function(rate, payment, present, future, type) {
-  type = (type === undefined) ? 0 : type;
-  future = (future === undefined) ? 0 : future;
+exports.NPER = function (rate, payment, present, future, type) {
+  type = type === undefined ? 0 : type;
+  future = future === undefined ? 0 : future;
 
   rate = utils.parseNumber(rate);
   payment = utils.parseNumber(payment);
@@ -14689,11 +14625,11 @@ exports.NPER = function(rate, payment, present, future, type) {
 
   // Return number of periods
   var num = payment * (1 + rate * type) - future * rate;
-  var den = (present * rate + payment * (1 + rate * type));
+  var den = present * rate + payment * (1 + rate * type);
   return Math.log(num / den) / Math.log(1 + rate);
 };
 
-exports.NPV = function() {
+exports.NPV = function () {
   var args = utils.parseNumberArray(utils.flatten(arguments));
   if (args instanceof Error) {
     return args;
@@ -14715,26 +14651,26 @@ exports.NPV = function() {
 };
 
 // TODO
-exports.ODDFPRICE = function() {
+exports.ODDFPRICE = function () {
   throw new Error('ODDFPRICE is not implemented');
 };
 
 // TODO
-exports.ODDFYIELD = function() {
+exports.ODDFYIELD = function () {
   throw new Error('ODDFYIELD is not implemented');
 };
 
 // TODO
-exports.ODDLPRICE = function() {
+exports.ODDLPRICE = function () {
   throw new Error('ODDLPRICE is not implemented');
 };
 
 // TODO
-exports.ODDLYIELD = function() {
+exports.ODDLYIELD = function () {
   throw new Error('ODDLYIELD is not implemented');
 };
 
-exports.PDURATION = function(rate, present, future) {
+exports.PDURATION = function (rate, present, future) {
   rate = utils.parseNumber(rate);
   present = utils.parseNumber(present);
   future = utils.parseNumber(future);
@@ -14751,7 +14687,7 @@ exports.PDURATION = function(rate, present, future) {
   return (Math.log(future) - Math.log(present)) / Math.log(1 + rate);
 };
 
-exports.PMT = function(rate, periods, present, future, type) {
+exports.PMT = function (rate, periods, present, future, type) {
   // Credits: algorithm inspired by Apache OpenOffice
 
   future = future || 0;
@@ -14781,7 +14717,7 @@ exports.PMT = function(rate, periods, present, future, type) {
   return -result;
 };
 
-exports.PPMT = function(rate, period, periods, present, future, type) {
+exports.PPMT = function (rate, period, periods, present, future, type) {
   future = future || 0;
   type = type || 0;
 
@@ -14798,21 +14734,21 @@ exports.PPMT = function(rate, period, periods, present, future, type) {
 };
 
 // TODO
-exports.PRICE = function() {
+exports.PRICE = function () {
   throw new Error('PRICE is not implemented');
 };
 
 // TODO
-exports.PRICEDISC = function() {
+exports.PRICEDISC = function () {
   throw new Error('PRICEDISC is not implemented');
 };
 
 // TODO
-exports.PRICEMAT = function() {
+exports.PRICEMAT = function () {
   throw new Error('PRICEMAT is not implemented');
 };
 
-exports.PV = function(rate, periods, payment, future, type) {
+exports.PV = function (rate, periods, payment, future, type) {
   future = future || 0;
   type = type || 0;
 
@@ -14829,16 +14765,16 @@ exports.PV = function(rate, periods, payment, future, type) {
   if (rate === 0) {
     return -payment * periods - future;
   } else {
-    return (((1 - Math.pow(1 + rate, periods)) / rate) * payment * (1 + rate * type) - future) / Math.pow(1 + rate, periods);
+    return ((1 - Math.pow(1 + rate, periods)) / rate * payment * (1 + rate * type) - future) / Math.pow(1 + rate, periods);
   }
 };
 
-exports.RATE = function(periods, payment, present, future, type, guess) {
+exports.RATE = function (periods, payment, present, future, type, guess) {
   // Credits: rabugento
 
-  guess = (guess === undefined) ? 0.01 : guess;
-  future = (future === undefined) ? 0 : future;
-  type = (type === undefined) ? 0 : type;
+  guess = guess === undefined ? 0.01 : guess;
+  future = future === undefined ? 0 : future;
+  type = type === undefined ? 0 : type;
 
   periods = utils.parseNumber(periods);
   payment = utils.parseNumber(payment);
@@ -14857,9 +14793,13 @@ exports.RATE = function(periods, payment, present, future, type, guess) {
   var iterMax = 50;
 
   // Implement Newton's method
-  var y, y0, y1, x0, x1 = 0,
-    f = 0,
-    i = 0;
+  var y,
+      y0,
+      y1,
+      x0,
+      x1 = 0,
+      f = 0,
+      i = 0;
   var rate = guess;
   if (Math.abs(rate) < epsMax) {
     y = present * (1 + periods * rate) + payment * (1 + rate * type) * periods + future;
@@ -14871,7 +14811,7 @@ exports.RATE = function(periods, payment, present, future, type, guess) {
   y1 = present * f + payment * (1 / rate + type) * (f - 1) + future;
   i = x0 = 0;
   x1 = rate;
-  while ((Math.abs(y0 - y1) > epsMax) && (i < iterMax)) {
+  while (Math.abs(y0 - y1) > epsMax && i < iterMax) {
     rate = (y1 * x0 - y0 * x1) / (y1 - y0);
     x0 = x1;
     x1 = rate;
@@ -14889,11 +14829,11 @@ exports.RATE = function(periods, payment, present, future, type, guess) {
 };
 
 // TODO
-exports.RECEIVED = function() {
+exports.RECEIVED = function () {
   throw new Error('RECEIVED is not implemented');
 };
 
-exports.RRI = function(periods, present, future) {
+exports.RRI = function (periods, present, future) {
   periods = utils.parseNumber(periods);
   present = utils.parseNumber(present);
   future = utils.parseNumber(future);
@@ -14910,7 +14850,7 @@ exports.RRI = function(periods, present, future) {
   return Math.pow(future / present, 1 / periods) - 1;
 };
 
-exports.SLN = function(cost, salvage, life) {
+exports.SLN = function (cost, salvage, life) {
   cost = utils.parseNumber(cost);
   salvage = utils.parseNumber(salvage);
   life = utils.parseNumber(life);
@@ -14927,7 +14867,7 @@ exports.SLN = function(cost, salvage, life) {
   return (cost - salvage) / life;
 };
 
-exports.SYD = function(cost, salvage, life, period) {
+exports.SYD = function (cost, salvage, life, period) {
   // Return error if any of the parameters is not a number
   cost = utils.parseNumber(cost);
   salvage = utils.parseNumber(salvage);
@@ -14951,10 +14891,10 @@ exports.SYD = function(cost, salvage, life, period) {
   period = parseInt(period, 10);
 
   // Return straight-line depreciation
-  return ((cost - salvage) * (life - period + 1) * 2) / (life * (life + 1));
+  return (cost - salvage) * (life - period + 1) * 2 / (life * (life + 1));
 };
 
-exports.TBILLEQ = function(settlement, maturity, discount) {
+exports.TBILLEQ = function (settlement, maturity, discount) {
   settlement = utils.parseDate(settlement);
   maturity = utils.parseDate(maturity);
   discount = utils.parseNumber(discount);
@@ -14978,10 +14918,10 @@ exports.TBILLEQ = function(settlement, maturity, discount) {
   }
 
   // Return bond-equivalent yield
-  return (365 * discount) / (360 - discount * dateTime.DAYS360(settlement, maturity, false));
+  return 365 * discount / (360 - discount * dateTime.DAYS360(settlement, maturity, false));
 };
 
-exports.TBILLPRICE = function(settlement, maturity, discount) {
+exports.TBILLPRICE = function (settlement, maturity, discount) {
   settlement = utils.parseDate(settlement);
   maturity = utils.parseDate(maturity);
   discount = utils.parseNumber(discount);
@@ -15008,7 +14948,7 @@ exports.TBILLPRICE = function(settlement, maturity, discount) {
   return 100 * (1 - discount * dateTime.DAYS360(settlement, maturity, false) / 360);
 };
 
-exports.TBILLYIELD = function(settlement, maturity, price) {
+exports.TBILLYIELD = function (settlement, maturity, price) {
   settlement = utils.parseDate(settlement);
   maturity = utils.parseDate(maturity);
   price = utils.parseNumber(price);
@@ -15036,7 +14976,7 @@ exports.TBILLYIELD = function(settlement, maturity, price) {
 };
 
 // TODO
-exports.VDB = function() {
+exports.VDB = function () {
   throw new Error('VDB is not implemented');
 };
 
@@ -15112,7 +15052,7 @@ exports.VDB = function() {
 //   return resultRate;
 // };
 
-exports.XNPV = function(rate, values, dates) {
+exports.XNPV = function (rate, values, dates) {
   rate = utils.parseNumber(rate);
   values = utils.parseNumberArray(utils.flatten(values));
   dates = utils.parseDateArray(utils.flatten(dates));
@@ -15128,20 +15068,19 @@ exports.XNPV = function(rate, values, dates) {
 };
 
 // TODO
-exports.YIELD = function() {
+exports.YIELD = function () {
   throw new Error('YIELD is not implemented');
 };
 
 // TODO
-exports.YIELDDISC = function() {
+exports.YIELDDISC = function () {
   throw new Error('YIELDDISC is not implemented');
 };
 
 // TODO
-exports.YIELDMAT = function() {
+exports.YIELDMAT = function () {
   throw new Error('YIELDMAT is not implemented');
 };
-
 
 /***/ }),
 /* 32 */
@@ -15150,7 +15089,8 @@ exports.YIELDMAT = function() {
 var error = __webpack_require__(0);
 var utils = __webpack_require__(1);
 
-exports.MATCH = function(lookupValue, lookupArray, matchType) {
+exports.MATCH = function (lookupValue, lookupArray, matchType) {
+  lookupArray = lookupArray.map(item => Array.isArray(item) ? item[0] : item); // flatten matrix.
   if (!lookupValue && !lookupArray) {
     return error.na;
   }
@@ -15205,11 +15145,11 @@ exports.MATCH = function(lookupValue, lookupArray, matchType) {
       }
     }
   }
-
   return index ? index : error.na;
 };
 
 exports.VLOOKUP = function (needle, table, index, rangeLookup) {
+  console.log('VLOOKUP', needle, table, index, rangeLookup);
   if (!needle || !table || !index) {
     return error.na;
   }
@@ -15217,15 +15157,17 @@ exports.VLOOKUP = function (needle, table, index, rangeLookup) {
   rangeLookup = rangeLookup || false;
   for (var i = 0; i < table.length; i++) {
     var row = table[i];
-    if ((!rangeLookup && row[0] === needle) ||
-      ((row[0] === needle) ||
-        (rangeLookup && typeof row[0] === "string" && row[0].toLowerCase().indexOf(needle.toLowerCase()) !== -1))) {
-      return (index < (row.length + 1) ? row[index - 1] : error.ref);
+    const inRange = rangeLookup && i < table.length - 1 && row[0] < needle && needle < table[i + 1][0];
+    const beyondRange = rangeLookup && i >= table.length - 1;
+    const exactMatch = row[0] === needle;
+    const caseInsensitiveMatch = rangeLookup && typeof row[0] === 'string' && typeof needle === 'string' && row[0].toLowerCase().includes(needle.toLowerCase());
+    if (inRange || beyondRange || exactMatch || caseInsensitiveMatch) {
+      return index < row.length + 1 ? row[index - 1] : error.ref;
     }
   }
 
   return error.na;
-};      
+};
 
 exports.HLOOKUP = function (needle, table, index, rangeLookup) {
   if (!needle || !table || !index) {
@@ -15238,16 +15180,13 @@ exports.HLOOKUP = function (needle, table, index, rangeLookup) {
 
   for (var i = 0; i < transposedTable.length; i++) {
     var row = transposedTable[i];
-    if ((!rangeLookup && row[0] === needle) ||
-      ((row[0] === needle) ||
-        (rangeLookup && typeof row[0] === "string" && row[0].toLowerCase().indexOf(needle.toLowerCase()) !== -1))) {
-      return (index < (row.length + 1) ? row[index - 1] : error.ref);
+    if (!rangeLookup && row[0] === needle || row[0] === needle || rangeLookup && typeof row[0] === "string" && row[0].toLowerCase().indexOf(needle.toLowerCase()) !== -1) {
+      return index < row.length + 1 ? row[index - 1] : error.ref;
     }
   }
 
   return error.na;
 };
-
 
 /***/ }),
 /* 33 */
@@ -15437,7 +15376,7 @@ func.SYMBOL = SYMBOL;
 /* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(module, process) {/* parser generated by jison 0.4.18 */
+/* WEBPACK VAR INJECTION */(function(process, module) {/* parser generated by jison 0.4.18 */
 /*
   Returns a Parser object of the following structure:
 
@@ -15511,12 +15450,12 @@ func.SYMBOL = SYMBOL;
   }
 */
 var grammarParser = (function(){
-var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,5],$V1=[1,8],$V2=[1,6],$V3=[1,7],$V4=[1,9],$V5=[1,14],$V6=[1,15],$V7=[1,16],$V8=[1,17],$V9=[1,12],$Va=[1,13],$Vb=[1,18],$Vc=[1,20],$Vd=[1,21],$Ve=[1,22],$Vf=[1,23],$Vg=[1,24],$Vh=[1,25],$Vi=[1,26],$Vj=[1,27],$Vk=[1,28],$Vl=[1,29],$Vm=[5,9,10,11,13,14,15,16,17,18,19,20,30,31],$Vn=[5,9,10,11,13,14,15,16,17,18,19,20,30,31,33],$Vo=[5,9,10,11,13,14,15,16,17,18,19,20,30,31,35],$Vp=[5,10,11,13,14,15,16,17,30,31],$Vq=[5,10,13,14,15,16,30,31],$Vr=[5,10,11,13,14,15,16,17,18,19,30,31],$Vs=[13,30,31];
+var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,5],$V1=[1,8],$V2=[1,6],$V3=[1,7],$V4=[1,9],$V5=[1,14],$V6=[1,15],$V7=[1,16],$V8=[1,17],$V9=[1,18],$Va=[1,19],$Vb=[1,12],$Vc=[1,13],$Vd=[1,20],$Ve=[1,22],$Vf=[1,23],$Vg=[1,24],$Vh=[1,25],$Vi=[1,26],$Vj=[1,27],$Vk=[1,28],$Vl=[1,29],$Vm=[1,30],$Vn=[1,31],$Vo=[5,9,10,11,13,14,15,16,17,18,19,20,32,33],$Vp=[5,9,10,11,13,14,15,16,17,18,19,20,32,33,35],$Vq=[5,9,10,11,13,14,15,16,17,18,19,20,32,33,37],$Vr=[5,10,11,13,14,15,16,17,32,33],$Vs=[5,10,13,14,15,16,32,33],$Vt=[5,10,11,13,14,15,16,17,18,19,32,33],$Vu=[13,32,33];
 var parser = {trace: function trace() { },
 yy: {},
-symbols_: {"error":2,"expressions":3,"expression":4,"EOF":5,"variableSequence":6,"number":7,"STRING":8,"&":9,"=":10,"+":11,"(":12,")":13,"<":14,">":15,"NOT":16,"-":17,"*":18,"/":19,"^":20,"FUNCTION":21,"expseq":22,"cell":23,"ABSOLUTE_CELL":24,"SHEET_REF":25,"RELATIVE_CELL":26,"MIXED_CELL":27,":":28,"ARRAY":29,";":30,",":31,"VARIABLE":32,"DECIMAL":33,"NUMBER":34,"%":35,"ERROR":36,"$accept":0,"$end":1},
-terminals_: {5:"EOF",8:"STRING",9:"&",10:"=",11:"+",12:"(",13:")",14:"<",15:">",16:"NOT",17:"-",18:"*",19:"/",20:"^",21:"FUNCTION",24:"ABSOLUTE_CELL",25:"SHEET_REF",26:"RELATIVE_CELL",27:"MIXED_CELL",28:":",29:"ARRAY",30:";",31:",",32:"VARIABLE",33:"DECIMAL",34:"NUMBER",35:"%",36:"ERROR"},
-productions_: [0,[3,2],[4,1],[4,1],[4,1],[4,3],[4,3],[4,3],[4,3],[4,4],[4,4],[4,4],[4,3],[4,3],[4,3],[4,3],[4,3],[4,3],[4,3],[4,2],[4,2],[4,3],[4,4],[4,1],[4,1],[4,2],[23,1],[23,2],[23,1],[23,2],[23,1],[23,2],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[22,1],[22,1],[22,3],[22,3],[6,1],[6,3],[7,1],[7,3],[7,2],[2,1]],
+symbols_: {"error":2,"expressions":3,"expression":4,"EOF":5,"variableSequence":6,"number":7,"STRING":8,"&":9,"=":10,"+":11,"(":12,")":13,"<":14,">":15,"NOT":16,"-":17,"*":18,"/":19,"^":20,"FUNCTION":21,"expseq":22,"cell":23,"ABSOLUTE_CELL":24,"SHEET_REF":25,"RELATIVE_CELL":26,"MIXED_CELL":27,":":28,"COLUMN_RANGE":29,"ROW_RANGE":30,"ARRAY":31,";":32,",":33,"VARIABLE":34,"DECIMAL":35,"NUMBER":36,"%":37,"ERROR":38,"$accept":0,"$end":1},
+terminals_: {5:"EOF",8:"STRING",9:"&",10:"=",11:"+",12:"(",13:")",14:"<",15:">",16:"NOT",17:"-",18:"*",19:"/",20:"^",21:"FUNCTION",24:"ABSOLUTE_CELL",25:"SHEET_REF",26:"RELATIVE_CELL",27:"MIXED_CELL",28:":",29:"COLUMN_RANGE",30:"ROW_RANGE",31:"ARRAY",32:";",33:",",34:"VARIABLE",35:"DECIMAL",36:"NUMBER",37:"%",38:"ERROR"},
+productions_: [0,[3,2],[4,1],[4,1],[4,1],[4,3],[4,3],[4,3],[4,3],[4,4],[4,4],[4,4],[4,3],[4,3],[4,3],[4,3],[4,3],[4,3],[4,3],[4,2],[4,2],[4,3],[4,4],[4,1],[4,1],[4,2],[23,1],[23,2],[23,1],[23,2],[23,1],[23,2],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,3],[23,4],[23,1],[23,2],[23,1],[23,2],[22,1],[22,1],[22,3],[22,3],[6,1],[6,3],[7,1],[7,3],[7,2],[2,1]],
 performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
 /* this == yyval */
 
@@ -15525,92 +15464,92 @@ switch (yystate) {
 case 1:
 
       return $$[$0-1];
-
+    
 break;
 case 2:
 
       this.$ = yy.callVariable($$[$0][0]);
-
+    
 break;
 case 3:
 
       this.$ = yy.toNumber($$[$0]);
-
+    
 break;
 case 4:
 
       this.$ = yy.trimEdges($$[$0]);
-
+    
 break;
 case 5:
 
       this.$ = yy.evaluateByOperator('&', [$$[$0-2], $$[$0]]);
-
+    
 break;
 case 6:
 
       this.$ = yy.evaluateByOperator('=', [$$[$0-2], $$[$0]]);
-
+    
 break;
 case 7:
 
       this.$ = yy.evaluateByOperator('+', [$$[$0-2], $$[$0]]);
-
+    
 break;
 case 8:
 
       this.$ = $$[$0-1];
-
+    
 break;
 case 9:
 
       this.$ = yy.evaluateByOperator('<=', [$$[$0-3], $$[$0]]);
-
+    
 break;
 case 10:
 
       this.$ = yy.evaluateByOperator('>=', [$$[$0-3], $$[$0]]);
-
+    
 break;
 case 11:
 
       this.$ = yy.evaluateByOperator('<>', [$$[$0-3], $$[$0]]);
-
+    
 break;
 case 12:
 
       this.$ = yy.evaluateByOperator('NOT', [$$[$0-2], $$[$0]]);
-
+    
 break;
 case 13:
 
       this.$ = yy.evaluateByOperator('>', [$$[$0-2], $$[$0]]);
-
+    
 break;
 case 14:
 
       this.$ = yy.evaluateByOperator('<', [$$[$0-2], $$[$0]]);
-
+    
 break;
 case 15:
 
       this.$ = yy.evaluateByOperator('-', [$$[$0-2], $$[$0]]);
-
+    
 break;
 case 16:
 
       this.$ = yy.evaluateByOperator('*', [$$[$0-2], $$[$0]]);
-
+    
 break;
 case 17:
 
       this.$ = yy.evaluateByOperator('/', [$$[$0-2], $$[$0]]);
-
+    
 break;
 case 18:
 
       this.$ = yy.evaluateByOperator('^', [$$[$0-2], $$[$0]]);
-
+    
 break;
 case 19:
 
@@ -15621,7 +15560,7 @@ case 19:
       if (isNaN(this.$)) {
           this.$ = 0;
       }
-
+    
 break;
 case 20:
 
@@ -15632,44 +15571,64 @@ case 20:
       if (isNaN(this.$)) {
           this.$ = 0;
       }
-
+    
 break;
 case 21:
 
       this.$ = yy.callFunction($$[$0-2]);
-
+    
 break;
 case 22:
 
       this.$ = yy.callFunction($$[$0-3], $$[$0-1]);
-
+    
 break;
 case 26: case 28: case 30:
 
       this.$ = yy.cellValue($$[$0]);
-
+    
 break;
 case 27: case 29: case 31:
 
       this.$ = yy.cellValue($$[$0-1] + $$[$0]);
-
+    
 break;
 case 32: case 34: case 36: case 38: case 40: case 42: case 44: case 46: case 48:
 
       this.$ = yy.rangeValue($$[$0-2], $$[$0]);
-
+    
 break;
 case 33: case 35: case 37: case 39: case 41: case 43: case 45: case 47: case 49:
 
       this.$ = yy.rangeValue($$[$0-3] + $$[$0-2], $$[$0-3] + $$[$0]);
-
+    
 break;
-case 50: case 54:
+case 50:
 
-      this.$ = [$$[$0]];
-
+      this.$ = yy.columnRangeValue($$[$0]);
+    
 break;
 case 51:
+
+      this.$ = yy.columnRangeValue($$[$0-1]+$$[$0])
+    
+break;
+case 52:
+
+      this.$ = yy.rowRangeValue($$[$0]);
+    
+break;
+case 53:
+
+      this.$ = yy.rowRangeValue($$[$0-1]+$$[$0])
+    
+break;
+case 54: case 58:
+
+      this.$ = [$$[$0]];
+    
+break;
+case 55:
 
       var result = [];
       var arr = eval("[" + yytext + "]");
@@ -15679,44 +15638,44 @@ case 51:
       });
 
       this.$ = result;
-
+    
 break;
-case 52: case 53:
+case 56: case 57:
 
       $$[$0-2].push($$[$0]);
       this.$ = $$[$0-2];
-
-break;
-case 55:
-
-      this.$ = (Array.isArray($$[$0-2]) ? $$[$0-2] : [$$[$0-2]]);
-      this.$.push($$[$0]);
-
-break;
-case 56:
-
-      this.$ = $$[$0];
-
-break;
-case 57:
-
-      this.$ = ($$[$0-2] + '.' + $$[$0]) * 1;
-
-break;
-case 58:
-
-      this.$ = $$[$0-1] * 0.01;
-
+    
 break;
 case 59:
 
-      this.$ = yy.throwError($$[$0]);
+      this.$ = (Array.isArray($$[$0-2]) ? $$[$0-2] : [$$[$0-2]]);
+      this.$.push($$[$0]);
+    
+break;
+case 60:
 
+      this.$ = $$[$0];
+    
+break;
+case 61:
+
+      this.$ = ($$[$0-2] + '.' + $$[$0]) * 1;
+    
+break;
+case 62:
+
+      this.$ = $$[$0-1] * 0.01;
+    
+break;
+case 63:
+
+      this.$ = yy.throwError($$[$0]);
+    
 break;
 }
 },
-table: [{2:11,3:1,4:2,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{1:[3]},{5:[1,19],9:$Vc,10:$Vd,11:$Ve,14:$Vf,15:$Vg,16:$Vh,17:$Vi,18:$Vj,19:$Vk,20:$Vl},o($Vm,[2,2],{33:[1,30]}),o($Vm,[2,3],{35:[1,31]}),o($Vm,[2,4]),{2:11,4:32,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:33,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:34,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{12:[1,35]},o($Vm,[2,23]),o($Vm,[2,24],{2:36,36:$Vb}),o($Vn,[2,54]),o($Vo,[2,56],{33:[1,37]}),o($Vm,[2,26],{28:[1,38]}),{24:[1,39],26:[1,40],27:[1,41]},o($Vm,[2,28],{28:[1,42]}),o($Vm,[2,30],{28:[1,43]}),o([5,9,10,11,13,14,15,16,17,18,19,20,30,31,36],[2,59]),{1:[2,1]},{2:11,4:44,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:45,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:46,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:49,6:3,7:4,8:$V0,10:[1,47],11:$V1,12:$V2,15:[1,48],17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:51,6:3,7:4,8:$V0,10:[1,50],11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:52,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:53,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:54,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:55,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:56,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{32:[1,57]},o($Vo,[2,58]),{9:$Vc,10:$Vd,11:$Ve,13:[1,58],14:$Vf,15:$Vg,16:$Vh,17:$Vi,18:$Vj,19:$Vk,20:$Vl},o($Vp,[2,19],{9:$Vc,18:$Vj,19:$Vk,20:$Vl}),o($Vp,[2,20],{9:$Vc,18:$Vj,19:$Vk,20:$Vl}),{2:11,4:61,6:3,7:4,8:$V0,11:$V1,12:$V2,13:[1,59],17:$V3,21:$V4,22:60,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:[1,62],32:$V9,34:$Va,36:$Vb},o($Vm,[2,25]),{34:[1,63]},{24:[1,64],26:[1,65],27:[1,66]},o($Vm,[2,27],{28:[1,67]}),o($Vm,[2,29],{28:[1,68]}),o($Vm,[2,31],{28:[1,69]}),{24:[1,70],26:[1,71],27:[1,72]},{24:[1,73],26:[1,74],27:[1,75]},o($Vm,[2,5]),o([5,10,13,30,31],[2,6],{9:$Vc,11:$Ve,14:$Vf,15:$Vg,16:$Vh,17:$Vi,18:$Vj,19:$Vk,20:$Vl}),o($Vp,[2,7],{9:$Vc,18:$Vj,19:$Vk,20:$Vl}),{2:11,4:76,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:77,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},o($Vq,[2,14],{9:$Vc,11:$Ve,17:$Vi,18:$Vj,19:$Vk,20:$Vl}),{2:11,4:78,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},o($Vq,[2,13],{9:$Vc,11:$Ve,17:$Vi,18:$Vj,19:$Vk,20:$Vl}),o([5,10,13,16,30,31],[2,12],{9:$Vc,11:$Ve,14:$Vf,15:$Vg,17:$Vi,18:$Vj,19:$Vk,20:$Vl}),o($Vp,[2,15],{9:$Vc,18:$Vj,19:$Vk,20:$Vl}),o($Vr,[2,16],{9:$Vc,20:$Vl}),o($Vr,[2,17],{9:$Vc,20:$Vl}),o([5,10,11,13,14,15,16,17,18,19,20,30,31],[2,18],{9:$Vc}),o($Vn,[2,55]),o($Vm,[2,8]),o($Vm,[2,21]),{13:[1,79],30:[1,80],31:[1,81]},o($Vs,[2,50],{9:$Vc,10:$Vd,11:$Ve,14:$Vf,15:$Vg,16:$Vh,17:$Vi,18:$Vj,19:$Vk,20:$Vl}),o($Vs,[2,51]),o($Vo,[2,57]),o($Vm,[2,32]),o($Vm,[2,34]),o($Vm,[2,36]),{24:[1,82],26:[1,83],27:[1,84]},{24:[1,85],26:[1,86],27:[1,87]},{24:[1,88],26:[1,89],27:[1,90]},o($Vm,[2,38]),o($Vm,[2,40]),o($Vm,[2,42]),o($Vm,[2,44]),o($Vm,[2,46]),o($Vm,[2,48]),o($Vq,[2,9],{9:$Vc,11:$Ve,17:$Vi,18:$Vj,19:$Vk,20:$Vl}),o($Vq,[2,11],{9:$Vc,11:$Ve,17:$Vi,18:$Vj,19:$Vk,20:$Vl}),o($Vq,[2,10],{9:$Vc,11:$Ve,17:$Vi,18:$Vj,19:$Vk,20:$Vl}),o($Vm,[2,22]),{2:11,4:91,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},{2:11,4:92,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,32:$V9,34:$Va,36:$Vb},o($Vm,[2,33]),o($Vm,[2,35]),o($Vm,[2,37]),o($Vm,[2,39]),o($Vm,[2,41]),o($Vm,[2,43]),o($Vm,[2,45]),o($Vm,[2,47]),o($Vm,[2,49]),o($Vs,[2,52],{9:$Vc,10:$Vd,11:$Ve,14:$Vf,15:$Vg,16:$Vh,17:$Vi,18:$Vj,19:$Vk,20:$Vl}),o($Vs,[2,53],{9:$Vc,10:$Vd,11:$Ve,14:$Vf,15:$Vg,16:$Vh,17:$Vi,18:$Vj,19:$Vk,20:$Vl})],
-defaultActions: {19:[2,1]},
+table: [{2:11,3:1,4:2,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{1:[3]},{5:[1,21],9:$Ve,10:$Vf,11:$Vg,14:$Vh,15:$Vi,16:$Vj,17:$Vk,18:$Vl,19:$Vm,20:$Vn},o($Vo,[2,2],{35:[1,32]}),o($Vo,[2,3],{37:[1,33]}),o($Vo,[2,4]),{2:11,4:34,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:35,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:36,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{12:[1,37]},o($Vo,[2,23]),o($Vo,[2,24],{2:38,38:$Vd}),o($Vp,[2,58]),o($Vq,[2,60],{35:[1,39]}),o($Vo,[2,26],{28:[1,40]}),{24:[1,41],26:[1,42],27:[1,43],29:[1,44],30:[1,45]},o($Vo,[2,28],{28:[1,46]}),o($Vo,[2,30],{28:[1,47]}),o($Vo,[2,50]),o($Vo,[2,52]),o([5,9,10,11,13,14,15,16,17,18,19,20,32,33,38],[2,63]),{1:[2,1]},{2:11,4:48,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:49,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:50,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:53,6:3,7:4,8:$V0,10:[1,51],11:$V1,12:$V2,15:[1,52],17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:55,6:3,7:4,8:$V0,10:[1,54],11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:56,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:57,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:58,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:59,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:60,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{34:[1,61]},o($Vq,[2,62]),{9:$Ve,10:$Vf,11:$Vg,13:[1,62],14:$Vh,15:$Vi,16:$Vj,17:$Vk,18:$Vl,19:$Vm,20:$Vn},o($Vr,[2,19],{9:$Ve,18:$Vl,19:$Vm,20:$Vn}),o($Vr,[2,20],{9:$Ve,18:$Vl,19:$Vm,20:$Vn}),{2:11,4:65,6:3,7:4,8:$V0,11:$V1,12:$V2,13:[1,63],17:$V3,21:$V4,22:64,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,31:[1,66],34:$Vb,36:$Vc,38:$Vd},o($Vo,[2,25]),{36:[1,67]},{24:[1,68],26:[1,69],27:[1,70]},o($Vo,[2,27],{28:[1,71]}),o($Vo,[2,29],{28:[1,72]}),o($Vo,[2,31],{28:[1,73]}),o($Vo,[2,51]),o($Vo,[2,53]),{24:[1,74],26:[1,75],27:[1,76]},{24:[1,77],26:[1,78],27:[1,79]},o($Vo,[2,5]),o([5,10,13,32,33],[2,6],{9:$Ve,11:$Vg,14:$Vh,15:$Vi,16:$Vj,17:$Vk,18:$Vl,19:$Vm,20:$Vn}),o($Vr,[2,7],{9:$Ve,18:$Vl,19:$Vm,20:$Vn}),{2:11,4:80,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:81,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},o($Vs,[2,14],{9:$Ve,11:$Vg,17:$Vk,18:$Vl,19:$Vm,20:$Vn}),{2:11,4:82,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},o($Vs,[2,13],{9:$Ve,11:$Vg,17:$Vk,18:$Vl,19:$Vm,20:$Vn}),o([5,10,13,16,32,33],[2,12],{9:$Ve,11:$Vg,14:$Vh,15:$Vi,17:$Vk,18:$Vl,19:$Vm,20:$Vn}),o($Vr,[2,15],{9:$Ve,18:$Vl,19:$Vm,20:$Vn}),o($Vt,[2,16],{9:$Ve,20:$Vn}),o($Vt,[2,17],{9:$Ve,20:$Vn}),o([5,10,11,13,14,15,16,17,18,19,20,32,33],[2,18],{9:$Ve}),o($Vp,[2,59]),o($Vo,[2,8]),o($Vo,[2,21]),{13:[1,83],32:[1,84],33:[1,85]},o($Vu,[2,54],{9:$Ve,10:$Vf,11:$Vg,14:$Vh,15:$Vi,16:$Vj,17:$Vk,18:$Vl,19:$Vm,20:$Vn}),o($Vu,[2,55]),o($Vq,[2,61]),o($Vo,[2,32]),o($Vo,[2,34]),o($Vo,[2,36]),{24:[1,86],26:[1,87],27:[1,88]},{24:[1,89],26:[1,90],27:[1,91]},{24:[1,92],26:[1,93],27:[1,94]},o($Vo,[2,38]),o($Vo,[2,40]),o($Vo,[2,42]),o($Vo,[2,44]),o($Vo,[2,46]),o($Vo,[2,48]),o($Vs,[2,9],{9:$Ve,11:$Vg,17:$Vk,18:$Vl,19:$Vm,20:$Vn}),o($Vs,[2,11],{9:$Ve,11:$Vg,17:$Vk,18:$Vl,19:$Vm,20:$Vn}),o($Vs,[2,10],{9:$Ve,11:$Vg,17:$Vk,18:$Vl,19:$Vm,20:$Vn}),o($Vo,[2,22]),{2:11,4:95,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},{2:11,4:96,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,27:$V8,29:$V9,30:$Va,34:$Vb,36:$Vc,38:$Vd},o($Vo,[2,33]),o($Vo,[2,35]),o($Vo,[2,37]),o($Vo,[2,39]),o($Vo,[2,41]),o($Vo,[2,43]),o($Vo,[2,45]),o($Vo,[2,47]),o($Vo,[2,49]),o($Vu,[2,56],{9:$Ve,10:$Vf,11:$Vg,14:$Vh,15:$Vi,16:$Vj,17:$Vk,18:$Vl,19:$Vm,20:$Vn}),o($Vu,[2,57],{9:$Ve,10:$Vf,11:$Vg,14:$Vh,15:$Vi,16:$Vj,17:$Vk,18:$Vl,19:$Vm,20:$Vn})],
+defaultActions: {21:[2,1]},
 parseError: function parseError(str, hash) {
     if (hash.recoverable) {
         this.trace(str);
@@ -16295,84 +16254,88 @@ var YYSTATE=YY_START;
 switch($avoiding_name_collisions) {
 case 0:/* skip whitespace */
 break;
-case 1:return 8;
+case 1:return 25;
 break;
 case 2:return 8;
 break;
-case 3:return 21;
+case 3:return 8;
 break;
-case 4:return 36;
+case 4:return 21;
 break;
-case 5:return 25;
+case 5:return 38;
 break;
-case 6:return 24;
+case 6:return 29
 break;
-case 7:return 27;
+case 7:return 30
 break;
-case 8:return 27;
+case 8:return 24;
 break;
-case 9:return 26;
+case 9:return 27;
 break;
-case 10:return 21;
+case 10:return 27;
 break;
-case 11:return 32;
+case 11:return 26;
 break;
-case 12:return 32;
+case 12:return 21;
 break;
 case 13:return 34;
 break;
-case 14:return 29;
+case 14:return 34;
 break;
-case 15:return 9;
+case 15:return 36;
 break;
-case 16:return ' ';
+case 16:return 31;
 break;
-case 17:return 33;
+case 17:return 9;
 break;
-case 18:return 28;
+case 18:return ' ';
 break;
-case 19:return 30;
+case 19:return 35;
 break;
-case 20:return 31;
+case 20:return 28;
 break;
-case 21:return 18;
+case 21:return 32;
 break;
-case 22:return 19;
+case 22:return 33;
 break;
-case 23:return 17;
+case 23:return 18;
 break;
-case 24:return 11;
+case 24:return 19;
 break;
-case 25:return 20;
+case 25:return 17;
 break;
-case 26:return 12;
+case 26:return 11;
 break;
-case 27:return 13;
+case 27:return 20;
 break;
-case 28:return 15;
+case 28:return 12;
 break;
-case 29:return 14;
+case 29:return 13;
 break;
-case 30:return 16;
+case 30:return 15;
 break;
-case 31:return '"';
+case 31:return 14;
 break;
-case 32:return "'";
+case 32:return 16;
 break;
-case 33:return "!";
+case 33:return '"';
 break;
-case 34:return 10;
+case 34:return "'";
 break;
-case 35:return 35;
+case 35:return "!";
 break;
-case 36:return '#';
+case 36:return 10;
 break;
-case 37:return 5;
+case 37:return 37;
+break;
+case 38:return '#';
+break;
+case 39:return 5;
 break;
 }
 },
-rules: [/^(?:\s+)/,/^(?:"(\\["]|[^"])*")/,/^(?:'(\\[']|[^'])*')/,/^(?:[A-Za-z]{1,}[A-Za-z_0-9\.]+(?=[(]))/,/^(?:#[A-Z0-9\/]+(!|\?)?)/,/^(?:[A-Za-z0-9\\s]+!)/,/^(?:\$[A-Za-z]+\$[0-9]+)/,/^(?:\$[A-Za-z]+[0-9]+)/,/^(?:[A-Za-z]+\$[0-9]+)/,/^(?:[A-Za-z]+[0-9]+)/,/^(?:[A-Za-z\.]+(?=[(]))/,/^(?:[A-Za-z]{1,}[A-Za-z_0-9]+)/,/^(?:[A-Za-z_]+)/,/^(?:[0-9]+)/,/^(?:\[(.*)?\])/,/^(?:&)/,/^(?: )/,/^(?:[.])/,/^(?::)/,/^(?:;)/,/^(?:,)/,/^(?:\*)/,/^(?:\/)/,/^(?:-)/,/^(?:\+)/,/^(?:\^)/,/^(?:\()/,/^(?:\))/,/^(?:>)/,/^(?:<)/,/^(?:NOT\b)/,/^(?:")/,/^(?:')/,/^(?:!)/,/^(?:=)/,/^(?:%)/,/^(?:[#])/,/^(?:$)/],
-conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37],"inclusive":true}}
+rules: [/^(?:\s+)/,/^(?:[-'&A-Za-z0-9\s]+!)/,/^(?:"(\\["]|[^"])*")/,/^(?:'(\\[']|[^'])*')/,/^(?:[A-Za-z]{1,}[A-Za-z_0-9\.]+(?=[(]))/,/^(?:#[A-Z0-9\/]+(!|\?)?)/,/^(?:(\$)?[A-Za-z]+:(\$)?[A-Za-z]+)/,/^(?:(\$)?[0-9]+:(\$)?[0-9]+)/,/^(?:\$[A-Za-z]+\$[0-9]+)/,/^(?:\$[A-Za-z]+[0-9]+)/,/^(?:[A-Za-z]+\$[0-9]+)/,/^(?:[A-Za-z]+[0-9]+)/,/^(?:[A-Za-z\.]+(?=[(]))/,/^(?:[A-Za-z]{1,}[A-Za-z_0-9]+)/,/^(?:[A-Za-z_]+)/,/^(?:[0-9]+)/,/^(?:\[(.*)?\])/,/^(?:&)/,/^(?: )/,/^(?:[.])/,/^(?::)/,/^(?:;)/,/^(?:,)/,/^(?:\*)/,/^(?:\/)/,/^(?:-)/,/^(?:\+)/,/^(?:\^)/,/^(?:\()/,/^(?:\))/,/^(?:>)/,/^(?:<)/,/^(?:NOT\b)/,/^(?:")/,/^(?:')/,/^(?:!)/,/^(?:=)/,/^(?:%)/,/^(?:[#])/,/^(?:$)/],
+conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39],"inclusive":true}}
 });
 return lexer;
 })();
@@ -16389,12 +16352,18 @@ if (true) {
 exports.parser = grammarParser;
 exports.Parser = grammarParser.Parser;
 exports.parse = function () { return grammarParser.parse.apply(grammarParser, arguments); };
+exports.main = function commonjsMain(args) {
+    if (!args[1]) {
+        console.log('Usage: '+args[0]+' FILE');
+        process.exit(1);
+    }
+    return exports.parser.parse(source);
+};
 if (typeof module !== 'undefined' && __webpack_require__.c[__webpack_require__.s] === module) {
   exports.main(process.argv.slice(1));
 }
 }
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(42)(module), __webpack_require__(10)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(10), __webpack_require__(42)(module)))
 
 /***/ }),
 /* 42 */

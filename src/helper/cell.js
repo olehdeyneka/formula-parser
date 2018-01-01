@@ -73,7 +73,7 @@ export function columnIndexToLabel(column) {
   return result.toUpperCase();
 }
 
-const LABEL_EXTRACT_REGEXP = /^(([A-Za-z0-9\s]+)!)?([$])?([A-Za-z]+)([$])?([0-9]+)$/;
+const LABEL_EXTRACT_REGEXP = /^('?([-&A-Za-z0-9\s]+)'?!)?([$])?([A-Za-z]+)?([$])?([0-9]+)?$/;
 
 /**
  * Extract cell coordinates.
@@ -91,14 +91,14 @@ export function extractLabel(label) {
     {
       index: rowLabelToIndex(row),
       label: row,
-      isAbsolute: rowAbs === '$',
+      isAbsolute: column ? rowAbs === '$' : columnAbs === '$', // in case it is only a row, the $ sign will be parsed as the column's
     },
     {
       index: columnLabelToIndex(column),
-      label: column.toUpperCase(),
+      label: (column ? column.toUpperCase() : ''),
       isAbsolute: columnAbs === '$',
     },
-    sheet,
+    sheet ? sheet.replace(/^'/, '').replace(/'$/, '') : undefined
   ];
 }
 
@@ -110,8 +110,8 @@ export function extractLabel(label) {
  * @returns {String} Returns cell label.
  */
 export function toLabel(row, column) {
-  const rowLabel = (row.isAbsolute ? '$' : '') + rowIndexToLabel(row.index);
-  const columnLabel = (column.isAbsolute ? '$' : '') + columnIndexToLabel(column.index);
+  const rowLabel = (row && row.isAbsolute ? '$' : '') + rowIndexToLabel(row ? row.index : -1);
+  const columnLabel = (column && column.isAbsolute ? '$' : '') + columnIndexToLabel(column ? column.index : -1);
 
   return columnLabel + rowLabel;
 }

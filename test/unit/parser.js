@@ -226,6 +226,53 @@ describe('Parser', () => {
     });
   });
 
+  describe('._callColumnRangeValue', () => {
+    it('should invoke callback with starting column and ending column', () => {
+      const cb = jest.fn();
+
+      parser.on('callColumnRangeValue', cb);
+      parser._callColumnRangeValue('Sheet1!$A:B');
+
+      const startCell = {
+        column: {index: 0, isAbsolute: true, label: 'A'},
+        label: '$A',
+        sheet: 'Sheet1',
+      };
+      const endCell = {
+        column: {index: 1, isAbsolute: false, label: 'B'},
+        label: 'B',
+        sheet: 'Sheet1',
+      };
+
+      expect(cb).toHaveBeenCalledWith(startCell, endCell, expect.anything());
+    });
+
+  });
+
+  describe('._callRowRangeValue', () => {
+    it.only('should invoke callback with starting column and ending column', () => {
+      const cb = jest.fn();
+
+      parser.on('callRowRangeValue', cb);
+
+      parser._callRowRangeValue('Sheet1!$1:10');
+
+      const startCell = {
+        row: {index: 0, isAbsolute: true, label: '1'},
+        label: '$1',
+        sheet: 'Sheet1'
+      };
+      const endCell = {
+        row: {index: 9, isAbsolute: false, label: '10'},
+        label: '10',
+        sheet: 'Sheet1'
+      };
+
+      expect(cb).toHaveBeenCalledWith(startCell, endCell, expect.anything());
+    });
+
+  });
+
   describe('._callRangeValue()', () => {
     it('should return an empty array if under specified coordinates data value not exist', () => {
       expect(parser._callRangeValue('A1', 'B2')).toMatchObject([]);

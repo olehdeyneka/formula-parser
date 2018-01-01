@@ -40,6 +40,7 @@ export default function evaluateByOperator(operator, params = []) {
  * @param {Function} func Logic to register for this symbol.
  */
 export function registerOperation(symbol, func) {
+  // console.log('registering operation', symbol, func);
   if (!Array.isArray(symbol)) {
     symbol = [symbol.toUpperCase()];
   }
